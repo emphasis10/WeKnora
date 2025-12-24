@@ -4,19 +4,19 @@
       <h2>{{ $t('modelSettings.title') }}</h2>
       <p class="section-description">{{ $t('modelSettings.description') }}</p>
       
-      <!-- 内置模型说明 -->
+      <!-- Built-in model info -->
       <div class="builtin-models-info">
         <div class="info-box">
           <div class="info-header">
             <t-icon name="info-circle" class="info-icon" />
-            <span class="info-title">内置模型</span>
+            <span class="info-title">Built-in Models</span>
           </div>
           <div class="info-content">
-            <p>内置模型对所有租户可见，敏感信息会被隐藏，且不可编辑或删除。</p>
+            <p>Built-in models are visible to all tenants, hide sensitive information, and cannot be edited or deleted.</p>
             <p class="doc-link">
               <t-icon name="link" class="link-icon" />
               <a href="https://github.com/Tencent/WeKnora/blob/main/docs/BUILTIN_MODELS.md" target="_blank" rel="noopener noreferrer">
-                查看内置模型管理指南
+                View the built-in model management guide
               </a>
             </p>
           </div>
@@ -24,7 +24,7 @@
       </div>
     </div>
 
-    <!-- 对话模型 -->
+    <!-- Conversational models -->
     <div class="model-category-section" data-model-type="chat">
       <div class="category-header">
         <div class="header-info">
@@ -44,7 +44,7 @@
           <div class="model-info">
             <div class="model-name">
               {{ model.name }}
-              <t-tag v-if="model.isBuiltin" theme="primary" size="small">内置</t-tag>
+              <t-tag v-if="model.isBuiltin" theme="primary" size="small">Built-in</t-tag>
             </div>
             <div class="model-meta">
               <span class="source-tag">{{ model.source === 'local' ? 'Ollama' : $t('modelSettings.source.remote') }}</span>
@@ -73,7 +73,7 @@
       </div>
     </div>
 
-    <!-- Embedding 模型 -->
+    <!-- Embedding models -->
     <div class="model-category-section" data-model-type="embedding">
       <div class="category-header">
         <div class="header-info">
@@ -93,7 +93,7 @@
           <div class="model-info">
             <div class="model-name">
               {{ model.name }}
-              <t-tag v-if="model.isBuiltin" theme="primary" size="small">内置</t-tag>
+              <t-tag v-if="model.isBuiltin" theme="primary" size="small">Built-in</t-tag>
             </div>
             <div class="model-meta">
               <span class="source-tag">{{ model.source === 'local' ? 'Ollama' : $t('modelSettings.source.remote') }}</span>
@@ -123,7 +123,7 @@
       </div>
     </div>
 
-    <!-- ReRank 模型 -->
+    <!-- ReRank models -->
     <div class="model-category-section" data-model-type="rerank">
       <div class="category-header">
         <div class="header-info">
@@ -143,7 +143,7 @@
           <div class="model-info">
             <div class="model-name">
               {{ model.name }}
-              <t-tag v-if="model.isBuiltin" theme="primary" size="small">内置</t-tag>
+              <t-tag v-if="model.isBuiltin" theme="primary" size="small">Built-in</t-tag>
             </div>
             <div class="model-meta">
               <span class="source-tag">{{ model.source === 'local' ? 'Ollama' : $t('modelSettings.source.remote') }}</span>
@@ -172,7 +172,7 @@
       </div>
     </div>
 
-    <!-- VLLM 视觉模型 -->
+    <!-- VLLM vision models -->
     <div class="model-category-section" data-model-type="vllm">
       <div class="category-header">
         <div class="header-info">
@@ -192,7 +192,7 @@
           <div class="model-info">
             <div class="model-name">
               {{ model.name }}
-              <t-tag v-if="model.isBuiltin" theme="primary" size="small">内置</t-tag>
+              <t-tag v-if="model.isBuiltin" theme="primary" size="small">Built-in</t-tag>
             </div>
             <div class="model-meta">
               <span class="source-tag">{{ model.source === 'local' ? 'Ollama' : $t('modelSettings.source.openaiCompatible') }}</span>
@@ -214,14 +214,14 @@
         </div>
       </div>
       <div v-else class="empty-state">
-        <p class="empty-text">暂无 VLLM 视觉模型</p>
+        <p class="empty-text">No VLLM vision models yet</p>
         <t-button theme="default" variant="outline" size="small" @click="openAddDialog('vllm')">
-          添加模型
+          Add model
         </t-button>
       </div>
     </div>
 
-    <!-- 模型编辑器弹窗 -->
+    <!-- Model editor dialog -->
     <ModelEditorDialog
       v-model:visible="showDialog"
       :model-type="currentModelType"
@@ -245,10 +245,10 @@ const currentModelType = ref<'chat' | 'embedding' | 'rerank' | 'vllm'>('chat')
 const editingModel = ref<any>(null)
 const loading = ref(true)
 
-// 模型列表数据
+// Model list data
 const allModels = ref<ModelConfig[]>([])
 
-// 根据类型过滤并去重模型
+// Filter and deduplicate models by type
 const chatModels = computed(() => 
   deduplicateModels(
     allModels.value
@@ -281,13 +281,13 @@ const vllmModels = computed(() =>
   )
 )
 
-// 将后端模型格式转换为旧的前端格式
+// Convert backend model format to the legacy frontend shape
 function convertToLegacyFormat(model: ModelConfig) {
   return {
     id: model.id!,
     name: model.name,
     source: model.source,
-    modelName: model.name,  // 显示名称作为模型名
+    modelName: model.name,  // Use display name as the model identifier
     baseUrl: model.parameters.base_url || '',
     apiKey: model.parameters.api_key || '',
     dimension: model.parameters.embedding_parameters?.dimension,
@@ -295,12 +295,12 @@ function convertToLegacyFormat(model: ModelConfig) {
   }
 }
 
-// 去重函数：比较除id外的所有字段，相同的只保留第一个
+// Deduplication helper: compare all fields except id and keep the first match
 function deduplicateModels(models: any[]) {
   const seen = new Map<string, any>()
   
   return models.filter(model => {
-    // 创建一个不包含id的签名用于比较
+    // Build a signature that excludes the id for comparison
     const signature = JSON.stringify({
       name: model.name,
       source: model.source,
@@ -319,33 +319,33 @@ function deduplicateModels(models: any[]) {
   })
 }
 
-// 加载模型列表
+// Load the model list
 const loadModels = async () => {
   loading.value = true
   try {
-    // 直接获取所有模型，不分类型
+    // Fetch all models regardless of type
     const models = await listModels()
     allModels.value = models
   } catch (error: any) {
-    console.error('加载模型列表失败:', error)
-    MessagePlugin.error(error.message || '加载模型列表失败')
+    console.error('Failed to load model list:', error)
+    MessagePlugin.error(error.message || 'Failed to load model list')
   } finally {
     loading.value = false
   }
 }
 
-// 打开添加对话框
+// Open the add model dialog
 const openAddDialog = (type: 'chat' | 'embedding' | 'rerank' | 'vllm') => {
   currentModelType.value = type
   editingModel.value = null
   showDialog.value = true
 }
 
-// 编辑模型
+// Edit a model
 const editModel = (type: 'chat' | 'embedding' | 'rerank' | 'vllm', model: any) => {
-  // 内置模型不能编辑
+  // Built-in models cannot be edited
   if (model.isBuiltin) {
-    MessagePlugin.warning('内置模型不能编辑')
+    MessagePlugin.warning('Built-in models cannot be edited')
     return
   }
   currentModelType.value = type
@@ -353,10 +353,10 @@ const editModel = (type: 'chat' | 'embedding' | 'rerank' | 'vllm', model: any) =
   showDialog.value = true
 }
 
-// 保存模型
+// Save model
 const handleModelSave = async (modelData: any) => {
   try {
-    // 字段校验
+    // Validate fields
     if (!modelData.modelName || !modelData.modelName.trim()) {
       MessagePlugin.warning(t('modelSettings.toasts.nameRequired'))
       return
@@ -367,14 +367,14 @@ const handleModelSave = async (modelData: any) => {
       return
     }
     
-    // Remote 类型必须填写 baseUrl
+    // Remote models require a baseUrl
     if (modelData.source === 'remote') {
       if (!modelData.baseUrl || !modelData.baseUrl.trim()) {
         MessagePlugin.warning(t('modelSettings.toasts.baseUrlRequired'))
         return
       }
       
-      // 校验 Base URL 格式
+      // Validate Base URL format
       try {
         new URL(modelData.baseUrl.trim())
       } catch {
@@ -383,7 +383,7 @@ const handleModelSave = async (modelData: any) => {
       }
     }
     
-    // Embedding 模型必须填写维度
+    // Embedding models must include a dimension
     if (currentModelType.value === 'embedding') {
       if (!modelData.dimension || modelData.dimension < 128 || modelData.dimension > 4096) {
         MessagePlugin.warning(t('modelSettings.toasts.dimensionInvalid'))
@@ -391,9 +391,9 @@ const handleModelSave = async (modelData: any) => {
       }
     }
     
-    // 将前端格式转换为后端格式
+    // Convert frontend format to backend payload
     const apiModelData: ModelConfig = {
-      name: modelData.modelName.trim(), // 使用 modelName 作为 name，并去除首尾空格
+      name: modelData.modelName.trim(), // Use modelName as name and trim whitespace
       type: getModelType(currentModelType.value),
       source: modelData.source,
       description: '',
@@ -410,59 +410,59 @@ const handleModelSave = async (modelData: any) => {
     }
 
     if (editingModel.value && editingModel.value.id) {
-      // 更新现有模型
+      // Update existing model
       await updateModelAPI(editingModel.value.id, apiModelData)
       MessagePlugin.success(t('modelSettings.toasts.updated'))
     } else {
-      // 添加新模型
+      // Create a new model
       await createModel(apiModelData)
       MessagePlugin.success(t('modelSettings.toasts.added'))
     }
     
-    // 重新加载模型列表
+    // Reload the model list
     await loadModels()
   } catch (error: any) {
-    console.error('保存模型失败:', error)
+    console.error('Failed to save model:', error)
     MessagePlugin.error(error.message || t('modelSettings.toasts.saveFailed'))
   }
 }
 
-// 删除模型
+// Delete model
 const deleteModel = async (type: 'chat' | 'embedding' | 'rerank' | 'vllm', modelId: string) => {
-  // 检查是否是内置模型
+  // Check if the model is built-in
   const model = allModels.value.find(m => m.id === modelId)
   if (model?.is_builtin) {
-    MessagePlugin.warning('内置模型不能删除')
+    MessagePlugin.warning('Built-in models cannot be deleted')
     return
   }
   
   try {
     await deleteModelAPI(modelId)
     MessagePlugin.success(t('modelSettings.toasts.deleted'))
-    // 重新加载模型列表
+    // Reload the model list
     await loadModels()
   } catch (error: any) {
-    console.error('删除模型失败:', error)
+    console.error('Failed to delete model:', error)
     MessagePlugin.error(error.message || t('modelSettings.toasts.deleteFailed'))
   }
 }
 
-// 获取模型操作菜单选项
+// Get model action menu options
 const getModelOptions = (type: 'chat' | 'embedding' | 'rerank' | 'vllm', model: any) => {
   const options: any[] = []
   
-  // 内置模型不能编辑和删除
+  // Built-in models cannot be edited or deleted
   if (model.isBuiltin) {
     return options
   }
   
-  // 编辑选项
+  // Edit option
   options.push({
     content: t('common.edit'),
     value: `edit-${type}-${model.id}`
   })
   
-  // 删除选项
+  // Delete option
   options.push({
     content: t('common.delete'),
     value: `delete-${type}-${model.id}`,
@@ -472,21 +472,21 @@ const getModelOptions = (type: 'chat' | 'embedding' | 'rerank' | 'vllm', model: 
   return options
 }
 
-// 处理菜单操作
+// Handle menu actions
 const handleMenuAction = (data: { value: string }, type: 'chat' | 'embedding' | 'rerank' | 'vllm', model: any) => {
   const value = data.value
   
   if (value.indexOf('edit-') === 0) {
     editModel(type, model)
   } else if (value.indexOf('delete-') === 0) {
-    // 使用确认对话框进行确认
+    // Confirm with the user
     if (confirm(t('modelSettings.confirmDelete'))) {
       deleteModel(type, model.id)
     }
   }
 }
 
-// 获取后端模型类型
+// Map to backend model types
 function getModelType(type: 'chat' | 'embedding' | 'rerank' | 'vllm'): 'KnowledgeQA' | 'Embedding' | 'Rerank' | 'VLLM' {
   const typeMap = {
     chat: 'KnowledgeQA' as const,
@@ -497,7 +497,7 @@ function getModelType(type: 'chat' | 'embedding' | 'rerank' | 'vllm'): 'Knowledg
   return typeMap[type]
 }
 
-// 组件挂载时加载模型列表
+// Load the model list when the component mounts
 onMounted(() => {
   loadModels()
 })
@@ -563,7 +563,7 @@ onMounted(() => {
   }
 }
 
-// 添加模型按钮样式优化
+// Styling tweaks for the add-model button
 :deep(.add-model-btn) {
   display: inline-flex;
   align-items: center;
@@ -605,7 +605,7 @@ onMounted(() => {
     box-shadow: 0 1px 4px rgba(7, 192, 95, 0.08);
   }
 
-  // 内置模型样式
+  // Built-in model styles
   &.builtin-model {
     background: #f8f9fa;
     border-color: #d9d9d9;
@@ -777,7 +777,7 @@ onMounted(() => {
   }
 }
 
-// TDesign 组件样式覆盖
+// TDesign component overrides
 :deep(.t-button) {
   &.add-model-btn {
     border-radius: 6px;
@@ -814,7 +814,7 @@ onMounted(() => {
   }
 }
 
-// Tag 样式优化
+// Tag style tweaks
 :deep(.t-tag) {
   border-radius: 3px;
   padding: 2px 8px;
@@ -838,7 +838,7 @@ onMounted(() => {
   }
 }
 
-// Dropdown 菜单样式优化
+// Dropdown menu tweaks
 :deep(.t-popup__content) {
   .t-dropdown__menu {
     background: #ffffff;
@@ -867,13 +867,13 @@ onMounted(() => {
       background: #e8f5ed;
     }
 
-    // 删除按钮特殊样式 - 覆盖默认 hover 样式
+    // Special styles for the delete item to override the default hover effects
     &.t-dropdown__item--theme-error {
       color: #f56c6c;
 
       &:hover {
         background: #fef0f0;
-        color: #e53e3e !important; // 使用 !important 确保覆盖默认样式
+        color: #e53e3e !important; // Use !important to ensure the default styles are overridden
       }
 
       &:active {
