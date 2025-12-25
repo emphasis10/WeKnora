@@ -151,11 +151,13 @@ func (c *RemoteAPIChat) buildChatCompletionRequest(messages []Message, opts *Cha
 		if opts.TopP > 0 {
 			req.TopP = openai.Float(opts.TopP)
 		}
-		if opts.MaxTokens > 0 {
-			req.MaxTokens = openai.Int(int64(opts.MaxTokens))
-		}
+		// GPT-5+ 모델은 max_tokens를 지원하지 않으므로 max_completion_tokens 사용
+		// MaxCompletionTokens가 설정되어 있으면 그것을 사용하고,
+		// 그렇지 않으면 MaxTokens 값을 max_completion_tokens로 사용
 		if opts.MaxCompletionTokens > 0 {
 			req.MaxCompletionTokens = openai.Int(int64(opts.MaxCompletionTokens))
+		} else if opts.MaxTokens > 0 {
+			req.MaxCompletionTokens = openai.Int(int64(opts.MaxTokens))
 		}
 		if opts.FrequencyPenalty > 0 {
 			req.FrequencyPenalty = openai.Float(opts.FrequencyPenalty)

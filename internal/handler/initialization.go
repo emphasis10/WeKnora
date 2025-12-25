@@ -1583,8 +1583,9 @@ func (h *InitializationHandler) checkRemoteModelConnection(ctx context.Context,
 	}
 
 	// 构造测试选项
+	// GPT-5 모델은 최소 응답을 완료하려면 일정 토큰이 필요하므로 50으로 설정
 	testOptions := &chat.ChatOptions{
-		MaxTokens: 1,
+		MaxTokens: 200,
 		Thinking:  &[]bool{false}[0], // for dashscope.aliyuncs qwen3-32b
 	}
 
