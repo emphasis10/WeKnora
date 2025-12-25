@@ -5,18 +5,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
 	"github.com/Tencent/WeKnora/internal/logger"
 	"github.com/Tencent/WeKnora/internal/types"
-	"github.com/sashabaranov/go-openai"
+	"github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 )
 
 // RemoteAPIChat 实现了基于的聊天
 type RemoteAPIChat struct {
 	modelName string
-	client    *openai.Client
+	client    openai.Client
 	modelID   string
 	baseURL   string
 	apiKey    string
@@ -24,20 +26,31 @@ type RemoteAPIChat struct {
 
 // QwenChatCompletionRequest 用于 qwen 模型的自定义请求结构体
 type QwenChatCompletionRequest struct {
-	openai.ChatCompletionRequest
-	EnableThinking *bool `json:"enable_thinking,omitempty"` // qwen 模型专用字段
+	Model               string                 `json:"model"`
+	Messages            []map[string]any       `json:"messages"`
+	Stream              bool                   `json:"stream,omitempty"`
+	Temperature         float32                `json:"temperature,omitempty"`
+	TopP                float32                `json:"top_p,omitempty"`
+	MaxTokens           int                    `json:"max_tokens,omitempty"`
+	MaxCompletionTokens int                    `json:"max_completion_tokens,omitempty"`
+	FrequencyPenalty    float32                `json:"frequency_penalty,omitempty"`
+	PresencePenalty     float32                `json:"presence_penalty,omitempty"`
+	Tools               []map[string]any       `json:"tools,omitempty"`
+	ToolChoice          any                    `json:"tool_choice,omitempty"`
+	ChatTemplateKwargs  map[string]interface{} `json:"chat_template_kwargs,omitempty"`
+	EnableThinking      *bool                  `json:"enable_thinking,omitempty"` // qwen 模型专用字段
 }
 
 // NewRemoteAPIChat 调用远程API 聊天实例
 func NewRemoteAPIChat(chatConfig *ChatConfig) (*RemoteAPIChat, error) {
 	apiKey := chatConfig.APIKey
-	config := openai.DefaultConfig(apiKey)
-	if baseURL := chatConfig.BaseURL; baseURL != "" {
-		config.BaseURL = baseURL
+	opts := []option.RequestOption{option.WithAPIKey(apiKey)}
+	if chatConfig.BaseURL != "" {
+		opts = append(opts, option.WithBaseURL(chatConfig.BaseURL))
 	}
 	return &RemoteAPIChat{
 		modelName: chatConfig.ModelName,
-		client:    openai.NewClientWithConfig(config),
+		client:    openai.NewClient(opts...),
 		modelID:   chatConfig.ModelID,
 		baseURL:   chatConfig.BaseURL,
 		apiKey:    apiKey,
@@ -45,43 +58,62 @@ func NewRemoteAPIChat(chatConfig *ChatConfig) (*RemoteAPIChat, error) {
 }
 
 // convertMessages 转换消息格式为OpenAI格式
-func (c *RemoteAPIChat) convertMessages(messages []Message) []openai.ChatCompletionMessage {
-	openaiMessages := make([]openai.ChatCompletionMessage, 0, len(messages))
+func (c *RemoteAPIChat) convertMessages(messages []Message) []openai.ChatCompletionMessageParamUnion {
+	openaiMessages := make([]openai.ChatCompletionMessageParamUnion, 0, len(messages))
 	for _, msg := range messages {
-		openaiMsg := openai.ChatCompletionMessage{
-			Role: msg.Role,
+		switch msg.Role {
+		case "system":
+			openaiMessages = append(openaiMessages, openai.SystemMessage(msg.Content))
+		case "user":
+			openaiMessages = append(openaiMessages, openai.UserMessage(msg.Content))
+		case "assistant":
+			if len(msg.ToolCalls) > 0 {
+				// For assistant messages with tool calls, we need to use raw HTTP
+				// as the SDK doesn't provide a simple way to construct these
+				openaiMessages = append(openaiMessages, openai.AssistantMessage(msg.Content))
+			} else {
+				openaiMessages = append(openaiMessages, openai.AssistantMessage(msg.Content))
+			}
+		case "tool":
+			openaiMessages = append(openaiMessages, openai.ToolMessage(msg.ToolCallID, msg.Content))
+		default:
+			openaiMessages = append(openaiMessages, openai.UserMessage(msg.Content))
 		}
+	}
+	return openaiMessages
+}
 
-		// 处理内容：对于 assistant 角色，内容可能为空（当有 tool_calls 时）
-		if msg.Content != "" {
-			openaiMsg.Content = msg.Content
+// convertMessagesToRaw 转换消息格式为原始 map 格式（用于自定义请求）
+func (c *RemoteAPIChat) convertMessagesToRaw(messages []Message) []map[string]any {
+	rawMessages := make([]map[string]any, 0, len(messages))
+	for _, msg := range messages {
+		rawMsg := map[string]any{
+			"role":    msg.Role,
+			"content": msg.Content,
 		}
-
-		// 处理 tool calls（assistant 角色）
 		if len(msg.ToolCalls) > 0 {
-			openaiMsg.ToolCalls = make([]openai.ToolCall, 0, len(msg.ToolCalls))
+			toolCalls := make([]map[string]any, 0, len(msg.ToolCalls))
 			for _, tc := range msg.ToolCalls {
-				toolType := openai.ToolType(tc.Type)
-				openaiMsg.ToolCalls = append(openaiMsg.ToolCalls, openai.ToolCall{
-					ID:   tc.ID,
-					Type: toolType,
-					Function: openai.FunctionCall{
-						Name:      tc.Function.Name,
-						Arguments: tc.Function.Arguments,
+				toolCalls = append(toolCalls, map[string]any{
+					"id":   tc.ID,
+					"type": tc.Type,
+					"function": map[string]any{
+						"name":      tc.Function.Name,
+						"arguments": tc.Function.Arguments,
 					},
 				})
 			}
+			rawMsg["tool_calls"] = toolCalls
 		}
-
-		// 处理 tool 角色消息（工具返回结果）
-		if msg.Role == "tool" {
-			openaiMsg.ToolCallID = msg.ToolCallID
-			openaiMsg.Name = msg.Name
+		if msg.ToolCallID != "" {
+			rawMsg["tool_call_id"] = msg.ToolCallID
 		}
-
-		openaiMessages = append(openaiMessages, openaiMsg)
+		if msg.Name != "" {
+			rawMsg["name"] = msg.Name
+		}
+		rawMessages = append(rawMessages, rawMsg)
 	}
-	return openaiMessages
+	return rawMessages
 }
 
 // isQwenModel 检查是否为 qwen 模型
@@ -94,34 +126,91 @@ func (c *RemoteAPIChat) isDeepSeekModel() bool {
 	return strings.Contains(strings.ToLower(c.modelName), "deepseek")
 }
 
-// buildQwenChatCompletionRequest 构建 qwen 模型的聊天请求参数
-func (c *RemoteAPIChat) buildQwenChatCompletionRequest(messages []Message,
-	opts *ChatOptions, isStream bool,
-) QwenChatCompletionRequest {
-	req := QwenChatCompletionRequest{
-		ChatCompletionRequest: c.buildChatCompletionRequest(messages, opts, isStream),
+// hasToolCalls 检查消息中是否有 tool calls
+func (c *RemoteAPIChat) hasToolCalls(messages []Message) bool {
+	for _, msg := range messages {
+		if len(msg.ToolCalls) > 0 {
+			return true
+		}
 	}
-
-	// 对于 qwen 模型，在非流式调用中强制设置 enable_thinking: false
-	if !isStream {
-		enableThinking := false
-		req.EnableThinking = &enableThinking
-	}
-	return req
+	return false
 }
 
 // buildChatCompletionRequest 构建聊天请求参数
-func (c *RemoteAPIChat) buildChatCompletionRequest(messages []Message,
-	opts *ChatOptions, isStream bool,
-) openai.ChatCompletionRequest {
-	req := openai.ChatCompletionRequest{
+func (c *RemoteAPIChat) buildChatCompletionRequest(messages []Message, opts *ChatOptions) openai.ChatCompletionNewParams {
+	req := openai.ChatCompletionNewParams{
 		Model:    c.modelName,
 		Messages: c.convertMessages(messages),
-		Stream:   isStream,
 	}
-	thinking := false
 
 	// 添加可选参数
+	if opts != nil {
+		if opts.Temperature > 0 {
+			req.Temperature = openai.Float(opts.Temperature)
+		}
+		if opts.TopP > 0 {
+			req.TopP = openai.Float(opts.TopP)
+		}
+		if opts.MaxTokens > 0 {
+			req.MaxTokens = openai.Int(int64(opts.MaxTokens))
+		}
+		if opts.MaxCompletionTokens > 0 {
+			req.MaxCompletionTokens = openai.Int(int64(opts.MaxCompletionTokens))
+		}
+		if opts.FrequencyPenalty > 0 {
+			req.FrequencyPenalty = openai.Float(opts.FrequencyPenalty)
+		}
+		if opts.PresencePenalty > 0 {
+			req.PresencePenalty = openai.Float(opts.PresencePenalty)
+		}
+
+		// 处理 Tools（函数定义）
+		if len(opts.Tools) > 0 {
+			tools := make([]openai.ChatCompletionToolUnionParam, 0, len(opts.Tools))
+			for _, tool := range opts.Tools {
+				openaiTool := openai.ChatCompletionToolUnionParam{
+					OfFunction: &openai.ChatCompletionFunctionToolParam{
+						Function: openai.FunctionDefinitionParam{
+							Name:        tool.Function.Name,
+							Description: openai.String(tool.Function.Description),
+						},
+					},
+				}
+				// 转换 Parameters
+				if tool.Function.Parameters != nil {
+					openaiTool.OfFunction.Function.Parameters = openai.FunctionParameters(tool.Function.Parameters)
+				}
+				tools = append(tools, openaiTool)
+			}
+			req.Tools = tools
+		}
+
+		// 处理 ToolChoice - 使用字符串形式
+		if opts.ToolChoice != "" && !c.isDeepSeekModel() {
+			// For standard choice options, use OfAuto
+			// Note: specific tool name selection is handled via raw HTTP in chatWithRawHTTP
+			switch opts.ToolChoice {
+			case "none", "required", "auto":
+				req.ToolChoice = openai.ChatCompletionToolChoiceOptionUnionParam{
+					OfAuto: openai.String(opts.ToolChoice),
+				}
+			}
+		}
+	}
+
+	return req
+}
+
+// buildQwenChatCompletionRequest 构建 qwen 模型的自定义请求
+func (c *RemoteAPIChat) buildQwenChatCompletionRequest(messages []Message, opts *ChatOptions, isStream bool) QwenChatCompletionRequest {
+	req := QwenChatCompletionRequest{
+		Model:    c.modelName,
+		Messages: c.convertMessagesToRaw(messages),
+		Stream:   isStream,
+	}
+
+	thinking := false
+
 	if opts != nil {
 		if opts.Temperature > 0 {
 			req.Temperature = float32(opts.Temperature)
@@ -145,51 +234,33 @@ func (c *RemoteAPIChat) buildChatCompletionRequest(messages []Message,
 			thinking = *opts.Thinking
 		}
 
-		// 处理 Tools（函数定义）
+		// 处理 Tools
 		if len(opts.Tools) > 0 {
-			req.Tools = make([]openai.Tool, 0, len(opts.Tools))
+			tools := make([]map[string]any, 0, len(opts.Tools))
 			for _, tool := range opts.Tools {
-				toolType := openai.ToolType(tool.Type)
-				openaiTool := openai.Tool{
-					Type: toolType,
-					Function: &openai.FunctionDefinition{
-						Name:        tool.Function.Name,
-						Description: tool.Function.Description,
+				tools = append(tools, map[string]any{
+					"type": tool.Type,
+					"function": map[string]any{
+						"name":        tool.Function.Name,
+						"description": tool.Function.Description,
+						"parameters":  tool.Function.Parameters,
 					},
-				}
-				// 转换 Parameters (map[string]interface{} -> JSON Schema)
-				if tool.Function.Parameters != nil {
-					// Parameters 已经是 JSON Schema 格式的 map，直接使用
-					openaiTool.Function.Parameters = tool.Function.Parameters
-				}
-				req.Tools = append(req.Tools, openaiTool)
+				})
 			}
+			req.Tools = tools
 		}
 
 		// 处理 ToolChoice
-		// ToolChoice 可以是字符串或 ToolChoice 对象
-		// 对于 "auto", "none", "required" 直接使用字符串
-		// 对于特定工具名称，使用 ToolChoice 对象
-		// 注意：某些模型（如 DeepSeek）不支持 tool_choice，需要跳过设置
-		if opts.ToolChoice != "" {
-			// DeepSeek 模型不支持 tool_choice，跳过设置（默认行为会自动使用工具）
-			if c.isDeepSeekModel() {
-				// 对于 DeepSeek，不设置 tool_choice，让 API 使用默认行为
-				// 如果有 tools，DeepSeek 会自动使用
-				logger.Infof(context.Background(), "deepseek model, skip tool_choice")
-			} else {
-				switch opts.ToolChoice {
-				case "none", "required", "auto":
-					// 直接使用字符串
-					req.ToolChoice = opts.ToolChoice
-				default:
-					// 特定工具名称，使用 ToolChoice 对象
-					req.ToolChoice = openai.ToolChoice{
-						Type: "function",
-						Function: openai.ToolFunction{
-							Name: opts.ToolChoice,
-						},
-					}
+		if opts.ToolChoice != "" && !c.isDeepSeekModel() {
+			switch opts.ToolChoice {
+			case "none", "required", "auto":
+				req.ToolChoice = opts.ToolChoice
+			default:
+				req.ToolChoice = map[string]any{
+					"type": "function",
+					"function": map[string]any{
+						"name": opts.ToolChoice,
+					},
 				}
 			}
 		}
@@ -199,28 +270,27 @@ func (c *RemoteAPIChat) buildChatCompletionRequest(messages []Message,
 		"enable_thinking": thinking,
 	}
 
-	// print req
-	// jsonData, err := json.Marshal(req)
-	// if err != nil {
-	// 	logger.Error(context.Background(), "marshal request: %w", err)
-	// }
-	// logger.Infof(context.Background(), "llm request: %s", string(jsonData))
+	// 对于 qwen 模型，在非流式调用中强制设置 enable_thinking: false
+	if !isStream {
+		enableThinking := false
+		req.EnableThinking = &enableThinking
+	}
 
 	return req
 }
 
 // Chat 进行非流式聊天
 func (c *RemoteAPIChat) Chat(ctx context.Context, messages []Message, opts *ChatOptions) (*types.ChatResponse, error) {
-	// 如果是 qwen 模型，使用自定义请求
-	if c.isAliyunQwen3Model() {
-		return c.chatWithQwen(ctx, messages, opts)
+	// 如果是 qwen 模型或者有 tool calls，使用自定义请求（因为 SDK 对 tool calls 支持复杂）
+	if c.isAliyunQwen3Model() || c.hasToolCalls(messages) {
+		return c.chatWithRawHTTP(ctx, messages, opts)
 	}
 
 	// 构建请求参数
-	req := c.buildChatCompletionRequest(messages, opts, false)
+	req := c.buildChatCompletionRequest(messages, opts)
 
 	// 发送请求
-	resp, err := c.client.CreateChatCompletion(ctx, req)
+	resp, err := c.client.Chat.Completions.New(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("create chat completion: %w", err)
 	}
@@ -238,9 +308,9 @@ func (c *RemoteAPIChat) Chat(ctx context.Context, messages []Message, opts *Chat
 			CompletionTokens int `json:"completion_tokens"`
 			TotalTokens      int `json:"total_tokens"`
 		}{
-			PromptTokens:     resp.Usage.PromptTokens,
-			CompletionTokens: resp.Usage.CompletionTokens,
-			TotalTokens:      resp.Usage.TotalTokens,
+			PromptTokens:     int(resp.Usage.PromptTokens),
+			CompletionTokens: int(resp.Usage.CompletionTokens),
+			TotalTokens:      int(resp.Usage.TotalTokens),
 		},
 	}
 
@@ -262,13 +332,13 @@ func (c *RemoteAPIChat) Chat(ctx context.Context, messages []Message, opts *Chat
 	return response, nil
 }
 
-// chatWithQwen 使用自定义请求处理 qwen 模型
-func (c *RemoteAPIChat) chatWithQwen(
+// chatWithRawHTTP 使用原始 HTTP 请求处理聊天（用于 qwen 模型和复杂的 tool calls 场景）
+func (c *RemoteAPIChat) chatWithRawHTTP(
 	ctx context.Context,
 	messages []Message,
 	opts *ChatOptions,
 ) (*types.ChatResponse, error) {
-	// 构建 qwen 请求参数
+	// 构建请求参数
 	req := c.buildQwenChatCompletionRequest(messages, opts, false)
 
 	// 序列化请求
@@ -278,7 +348,11 @@ func (c *RemoteAPIChat) chatWithQwen(
 	}
 
 	// 构建 URL
-	endpoint := c.baseURL + "/chat/completions"
+	baseURL := c.baseURL
+	if baseURL == "" {
+		baseURL = "https://api.openai.com/v1"
+	}
+	endpoint := baseURL + "/chat/completions"
 
 	// 创建 HTTP 请求
 	httpReq, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(jsonData))
@@ -300,11 +374,32 @@ func (c *RemoteAPIChat) chatWithQwen(
 
 	// 检查响应状态
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status: %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API request failed with status: %d, body: %s", resp.StatusCode, string(body))
 	}
 
 	// 解析响应
-	var chatResp openai.ChatCompletionResponse
+	var chatResp struct {
+		Choices []struct {
+			Message struct {
+				Content   string `json:"content"`
+				ToolCalls []struct {
+					ID       string `json:"id"`
+					Type     string `json:"type"`
+					Function struct {
+						Name      string `json:"name"`
+						Arguments string `json:"arguments"`
+					} `json:"function"`
+				} `json:"tool_calls"`
+			} `json:"message"`
+			FinishReason string `json:"finish_reason"`
+		} `json:"choices"`
+		Usage struct {
+			PromptTokens     int `json:"prompt_tokens"`
+			CompletionTokens int `json:"completion_tokens"`
+			TotalTokens      int `json:"total_tokens"`
+		} `json:"usage"`
+	}
 	if err := json.NewDecoder(resp.Body).Decode(&chatResp); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
@@ -316,7 +411,7 @@ func (c *RemoteAPIChat) chatWithQwen(
 	choice := chatResp.Choices[0]
 	response := &types.ChatResponse{
 		Content:      choice.Message.Content,
-		FinishReason: string(choice.FinishReason),
+		FinishReason: choice.FinishReason,
 		Usage: struct {
 			PromptTokens     int `json:"prompt_tokens"`
 			CompletionTokens int `json:"completion_tokens"`
@@ -334,7 +429,7 @@ func (c *RemoteAPIChat) chatWithQwen(
 		for _, tc := range choice.Message.ToolCalls {
 			response.ToolCalls = append(response.ToolCalls, types.LLMToolCall{
 				ID:   tc.ID,
-				Type: string(tc.Type),
+				Type: tc.Type,
 				Function: types.FunctionCall{
 					Name:      tc.Function.Name,
 					Arguments: tc.Function.Arguments,
@@ -351,17 +446,13 @@ func (c *RemoteAPIChat) ChatStream(ctx context.Context,
 	messages []Message, opts *ChatOptions,
 ) (<-chan types.StreamResponse, error) {
 	// 构建请求参数
-	req := c.buildChatCompletionRequest(messages, opts, true)
+	req := c.buildChatCompletionRequest(messages, opts)
 
 	// 创建流式响应通道
 	streamChan := make(chan types.StreamResponse)
 
 	// 启动流式请求
-	stream, err := c.client.CreateChatCompletionStream(ctx, req)
-	if err != nil {
-		close(streamChan)
-		return nil, fmt.Errorf("create chat completion stream: %w", err)
-	}
+	stream := c.client.Chat.Completions.NewStreaming(ctx, req)
 
 	// 在后台处理流式响应
 	go func() {
@@ -388,18 +479,8 @@ func (c *RemoteAPIChat) ChatStream(ctx context.Context,
 			return result
 		}
 
-		for {
-			response, err := stream.Recv()
-			if err != nil {
-				// 发送最后一个响应，包含收集到的 tool calls
-				streamChan <- types.StreamResponse{
-					ResponseType: types.ResponseTypeAnswer,
-					Content:      "",
-					Done:         true,
-					ToolCalls:    buildOrderedToolCalls(),
-				}
-				return
-			}
+		for stream.Next() {
+			response := stream.Current()
 
 			if len(response.Choices) > 0 {
 				delta := response.Choices[0].Delta
@@ -409,10 +490,7 @@ func (c *RemoteAPIChat) ChatStream(ctx context.Context,
 				if len(delta.ToolCalls) > 0 {
 					for _, tc := range delta.ToolCalls {
 						// 检查是否已经存在该 tool call（通过 index）
-						var toolCallIndex int
-						if tc.Index != nil {
-							toolCallIndex = *tc.Index
-						}
+						toolCallIndex := int(tc.Index)
 						toolCallEntry, exists := toolCallMap[toolCallIndex]
 						if !exists || toolCallEntry == nil {
 							toolCallEntry = &types.LLMToolCall{
@@ -487,6 +565,19 @@ func (c *RemoteAPIChat) ChatStream(ctx context.Context,
 					}
 				}
 			}
+		}
+
+		// Check for errors
+		if err := stream.Err(); err != nil {
+			logger.GetLogger(ctx).Errorf("stream error: %v", err)
+		}
+
+		// 发送最后一个响应，包含收集到的 tool calls
+		streamChan <- types.StreamResponse{
+			ResponseType: types.ResponseTypeAnswer,
+			Content:      "",
+			Done:         true,
+			ToolCalls:    buildOrderedToolCalls(),
 		}
 	}()
 
