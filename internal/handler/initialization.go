@@ -234,7 +234,7 @@ func (h *InitializationHandler) UpdateKBConfig(c *gin.Context) {
 	kb, err := h.kbService.GetKnowledgeBaseByID(ctx, kbIdStr)
 	if err != nil || kb == nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{"kbId": utils.SanitizeForLog(kbIdStr)})
-		c.Error(errors.NewNotFoundError("知识库不存在"))
+		c.Error(errors.NewNotFoundError("Knowledge base does not exist"))
 		return
 	}
 
@@ -248,7 +248,7 @@ func (h *InitializationHandler) UpdateKBConfig(c *gin.Context) {
 			}, "", "", "")
 		if err == nil && knowledgeList != nil && knowledgeList.Total > 0 {
 			logger.Error(ctx, "Cannot change embedding model when files exist")
-			c.Error(errors.NewBadRequestError("知识库中已有文件，无法修改Embedding模型"))
+			c.Error(errors.NewBadRequestError("Files already exist in the knowledge base; embedding model cannot be changed"))
 			return
 		}
 	}
@@ -257,14 +257,14 @@ func (h *InitializationHandler) UpdateKBConfig(c *gin.Context) {
 	llmModel, err := h.modelService.GetModelByID(ctx, req.LLMModelID)
 	if err != nil || llmModel == nil {
 		logger.Error(ctx, "LLM model not found")
-		c.Error(errors.NewBadRequestError("LLM模型不存在"))
+		c.Error(errors.NewBadRequestError("LLM model does not exist"))
 		return
 	}
 
 	embeddingModel, err := h.modelService.GetModelByID(ctx, req.EmbeddingModelID)
 	if err != nil || embeddingModel == nil {
 		logger.Error(ctx, "Embedding model not found")
-		c.Error(errors.NewBadRequestError("Embedding模型不存在"))
+		c.Error(errors.NewBadRequestError("Embedding model does not exist"))
 		return
 	}
 
@@ -377,13 +377,13 @@ func (h *InitializationHandler) UpdateKBConfig(c *gin.Context) {
 	// 保存更新后的知识库
 	if err := h.kbRepository.UpdateKnowledgeBase(ctx, kb); err != nil {
 		logger.Error(ctx, "Failed to update knowledge base", err)
-		c.Error(errors.NewInternalServerError("更新知识库失败: " + err.Error()))
+		c.Error(errors.NewInternalServerError("Failed to update knowledge base: " + err.Error()))
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "配置更新成功",
+		"message": "Configuration updated successfully",
 	})
 }
 
@@ -438,13 +438,13 @@ func (h *InitializationHandler) InitializeByKB(c *gin.Context) {
 
 	if err := h.kbRepository.UpdateKnowledgeBase(ctx, kb); err != nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{"kbId": utils.SanitizeForLog(kbIdStr)})
-		c.Error(errors.NewInternalServerError("更新知识库配置失败: " + err.Error()))
+		c.Error(errors.NewInternalServerError("Failed to update knowledge base configuration: " + err.Error()))
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "知识库配置更新成功",
+		"message": "Knowledge base configuration updated successfully",
 		"data": gin.H{
 			"models":         processedModels,
 			"knowledge_base": kb,
@@ -465,11 +465,11 @@ func (h *InitializationHandler) getKnowledgeBaseForInitialization(ctx context.Co
 	kb, err := h.kbService.GetKnowledgeBaseByID(ctx, kbIdStr)
 	if err != nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{"kbId": utils.SanitizeForLog(kbIdStr)})
-		return nil, errors.NewInternalServerError("获取知识库信息失败: " + err.Error())
+		return nil, errors.NewInternalServerError("Failed to get knowledge base information: " + err.Error())
 	}
 	if kb == nil {
 		logger.Error(ctx, "Knowledge base not found")
-		return nil, errors.NewNotFoundError("知识库不存在")
+		return nil, errors.NewNotFoundError("Knowledge base does not exist")
 	}
 	return kb, nil
 }
@@ -492,14 +492,14 @@ func (h *InitializationHandler) validateMultimodalConfig(ctx context.Context, re
 	storageType := strings.ToLower(req.Multimodal.StorageType)
 	if req.Multimodal.VLM == nil {
 		logger.Error(ctx, "Multimodal enabled but missing VLM configuration")
-		return errors.NewBadRequestError("启用多模态时需要配置VLM信息")
+		return errors.NewBadRequestError("VLM configuration is required when multimodal is enabled")
 	}
 	if req.Multimodal.VLM.InterfaceType == "ollama" {
 		req.Multimodal.VLM.BaseURL = os.Getenv("OLLAMA_BASE_URL") + "/v1"
 	}
 	if req.Multimodal.VLM.ModelName == "" || req.Multimodal.VLM.BaseURL == "" {
 		logger.Error(ctx, "VLM configuration incomplete")
-		return errors.NewBadRequestError("VLM配置不完整")
+		return errors.NewBadRequestError("VLM configuration is incomplete")
 	}
 
 	switch storageType {
@@ -508,13 +508,13 @@ func (h *InitializationHandler) validateMultimodalConfig(ctx context.Context, re
 			req.Multimodal.COS.Region == "" || req.Multimodal.COS.BucketName == "" ||
 			req.Multimodal.COS.AppID == "" {
 			logger.Error(ctx, "COS configuration incomplete")
-			return errors.NewBadRequestError("COS配置不完整")
+			return errors.NewBadRequestError("COS configuration is incomplete")
 		}
 	case "minio":
 		if req.Multimodal.Minio == nil || req.Multimodal.Minio.BucketName == "" ||
 			os.Getenv("MINIO_ACCESS_KEY_ID") == "" || os.Getenv("MINIO_SECRET_ACCESS_KEY") == "" {
 			logger.Error(ctx, "MinIO configuration incomplete")
-			return errors.NewBadRequestError("MinIO配置不完整")
+			return errors.NewBadRequestError("MinIO configuration is incomplete")
 		}
 	}
 	return nil
@@ -526,7 +526,7 @@ func validateRerankConfig(ctx context.Context, req *InitializationRequest) error
 	}
 	if req.Rerank.ModelName == "" || req.Rerank.BaseURL == "" {
 		logger.Error(ctx, "Rerank configuration incomplete")
-		return errors.NewBadRequestError("Rerank配置不完整")
+		return errors.NewBadRequestError("Rerank configuration is incomplete")
 	}
 	return nil
 }
@@ -537,15 +537,15 @@ func validateNodeExtractConfig(ctx context.Context, req *InitializationRequest) 
 	}
 	if strings.ToLower(os.Getenv("NEO4J_ENABLE")) != "true" {
 		logger.Error(ctx, "Node Extractor configuration incomplete")
-		return errors.NewBadRequestError("请正确配置环境变量NEO4J_ENABLE")
+		return errors.NewBadRequestError("Please correctly configure the environment variable NEO4J_ENABLE")
 	}
 	if req.NodeExtract.Text == "" || len(req.NodeExtract.Tags) == 0 {
 		logger.Error(ctx, "Node Extractor configuration incomplete")
-		return errors.NewBadRequestError("Node Extractor配置不完整")
+		return errors.NewBadRequestError("Node Extractor configuration is incomplete")
 	}
 	if len(req.NodeExtract.Nodes) == 0 || len(req.NodeExtract.Relations) == 0 {
 		logger.Error(ctx, "Node Extractor configuration incomplete")
-		return errors.NewBadRequestError("请先提取实体和关系")
+		return errors.NewBadRequestError("Please extract entities and relations first")
 	}
 	return nil
 }
@@ -643,7 +643,7 @@ func (h *InitializationHandler) processInitializationModels(
 					"model_id": model.ID,
 					"kb_id":    kbIdStr,
 				})
-				return nil, errors.NewInternalServerError("更新模型失败: " + err.Error())
+				return nil, errors.NewInternalServerError("Failed to update model: " + err.Error())
 			}
 			processedModels = append(processedModels, existingModel)
 			continue
@@ -654,7 +654,7 @@ func (h *InitializationHandler) processInitializationModels(
 				"model_id": model.ID,
 				"kb_id":    kbIdStr,
 			})
-			return nil, errors.NewInternalServerError("创建模型失败: " + err.Error())
+			return nil, errors.NewInternalServerError("Failed to create model: " + err.Error())
 		}
 		processedModels = append(processedModels, model)
 	}
@@ -950,7 +950,7 @@ func (h *InitializationHandler) DownloadOllamaModel(c *gin.Context) {
 	if available {
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
-			"message": "模型已存在",
+			"message": "Model already exists",
 			"data": gin.H{
 				"modelName": req.ModelName,
 				"status":    "completed",
@@ -967,7 +967,7 @@ func (h *InitializationHandler) DownloadOllamaModel(c *gin.Context) {
 			tasksMutex.RUnlock()
 			c.JSON(http.StatusOK, gin.H{
 				"success": true,
-				"message": "模型下载任务已存在",
+				"message": "Model download task already exists",
 				"data": gin.H{
 					"taskId":    task.ID,
 					"modelName": task.ModelName,
@@ -987,7 +987,7 @@ func (h *InitializationHandler) DownloadOllamaModel(c *gin.Context) {
 		ModelName: req.ModelName,
 		Status:    "pending",
 		Progress:  0.0,
-		Message:   "准备下载",
+		Message:   "Preparing download",
 		StartTime: time.Now(),
 	}
 
@@ -1005,7 +1005,7 @@ func (h *InitializationHandler) DownloadOllamaModel(c *gin.Context) {
 	logger.Infof(ctx, "Created download task for model, task ID: %s", taskID)
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "模型下载任务已创建",
+		"message": "Model download task created",
 		"data": gin.H{
 			"taskId":    taskID,
 			"modelName": req.ModelName,
@@ -1031,7 +1031,7 @@ func (h *InitializationHandler) GetDownloadProgress(c *gin.Context) {
 	taskID := c.Param("taskId")
 
 	if taskID == "" {
-		c.Error(errors.NewBadRequestError("任务ID不能为空"))
+		c.Error(errors.NewBadRequestError("Task ID cannot be empty"))
 		return
 	}
 
@@ -1040,7 +1040,7 @@ func (h *InitializationHandler) GetDownloadProgress(c *gin.Context) {
 	tasksMutex.RUnlock()
 
 	if !exists {
-		c.Error(errors.NewNotFoundError("下载任务不存在"))
+		c.Error(errors.NewNotFoundError("Download task does not exist"))
 		return
 	}
 
@@ -1094,7 +1094,7 @@ func (h *InitializationHandler) ListOllamaModels(c *gin.Context) {
 	if !h.ollamaService.IsAvailable() {
 		if err := h.ollamaService.StartService(ctx); err != nil {
 			logger.ErrorWithFields(ctx, err, nil)
-			c.Error(errors.NewInternalServerError("Ollama服务不可用: " + err.Error()))
+			c.Error(errors.NewInternalServerError("Ollama service unavailable: " + err.Error()))
 			return
 		}
 	}
@@ -1103,7 +1103,7 @@ func (h *InitializationHandler) ListOllamaModels(c *gin.Context) {
 	models, err := h.ollamaService.ListModelsDetailed(ctx)
 	if err != nil {
 		logger.ErrorWithFields(ctx, err, nil)
-		c.Error(errors.NewInternalServerError("获取模型列表失败: " + err.Error()))
+		c.Error(errors.NewInternalServerError("Failed to get model list: " + err.Error()))
 		return
 	}
 
@@ -1122,7 +1122,7 @@ func (h *InitializationHandler) downloadModelAsync(ctx context.Context,
 	logger.Infof(ctx, "Starting async download for model, task: %s", taskID)
 
 	// 更新任务状态为下载中
-	h.updateTaskStatus(taskID, "downloading", 0.0, "开始下载模型")
+	h.updateTaskStatus(taskID, "downloading", 0.0, "Starting model download")
 
 	// 执行下载，带进度回调
 	err := h.pullModelWithProgress(ctx, modelName, func(progress float64, message string) {
@@ -1130,13 +1130,13 @@ func (h *InitializationHandler) downloadModelAsync(ctx context.Context,
 	})
 	if err != nil {
 		logger.Error(ctx, "Failed to download model", err)
-		h.updateTaskStatus(taskID, "failed", 0.0, fmt.Sprintf("下载失败: %v", err))
+		h.updateTaskStatus(taskID, "failed", 0.0, fmt.Sprintf("Download failed: %v", err))
 		return
 	}
 
 	// 下载成功
 	logger.Infof(ctx, "Model downloaded successfully, task: %s", taskID)
-	h.updateTaskStatus(taskID, "completed", 100.0, "下载完成")
+	h.updateTaskStatus(taskID, "completed", 100.0, "Download completed")
 }
 
 // pullModelWithProgress 下载模型并提供进度回调
@@ -1157,7 +1157,7 @@ func (h *InitializationHandler) pullModelWithProgress(ctx context.Context,
 		return err
 	}
 	if available {
-		progressCallback(100.0, "模型已存在")
+		progressCallback(100.0, "Model already exists")
 		return nil
 	}
 
@@ -1169,11 +1169,11 @@ func (h *InitializationHandler) pullModelWithProgress(ctx context.Context,
 	// 使用Ollama客户端的Pull方法，带进度回调
 	err = h.ollamaService.GetClient().Pull(ctx, pullReq, func(progress api.ProgressResponse) error {
 		progressPercent := 0.0
-		message := "下载中"
+		message := "Downloading"
 
 		if progress.Total > 0 && progress.Completed > 0 {
 			progressPercent = float64(progress.Completed) / float64(progress.Total) * 100
-			message = fmt.Sprintf("下载中: %.1f%% (%s)", progressPercent, progress.Status)
+			message = fmt.Sprintf("Downloading: %.1f%% (%s)", progressPercent, progress.Status)
 		} else if progress.Status != "" {
 			message = progress.Status
 		}
@@ -1454,7 +1454,7 @@ func (h *InitializationHandler) CheckRemoteModel(c *gin.Context) {
 	// 验证请求参数
 	if req.ModelName == "" || req.BaseURL == "" {
 		logger.Error(ctx, "Model name and base URL are required")
-		c.Error(errors.NewBadRequestError("模型名称和Base URL不能为空"))
+		c.Error(errors.NewBadRequestError("Model name and base URL cannot be empty"))
 		return
 	}
 
@@ -1530,7 +1530,7 @@ func (h *InitializationHandler) TestEmbeddingModel(c *gin.Context) {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{"model": utils.SanitizeForLog(req.ModelName)})
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
-			"data":    gin.H{`available`: false, `message`: fmt.Sprintf("创建Embedder失败: %v", err), `dimension`: 0},
+			"data":    gin.H{`available`: false, `message`: fmt.Sprintf("Failed to create Embedder: %v", err), `dimension`: 0},
 		})
 		return
 	}
@@ -1542,7 +1542,7 @@ func (h *InitializationHandler) TestEmbeddingModel(c *gin.Context) {
 		logger.Error(ctx, "Failed to create embedder", err)
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
-			"data":    gin.H{`available`: false, `message`: fmt.Sprintf("调用Embedding失败: %v", err), `dimension`: 0},
+			"data":    gin.H{`available`: false, `message`: fmt.Sprintf("Failed to call Embedding: %v", err), `dimension`: 0},
 		})
 		return
 	}
@@ -1550,7 +1550,7 @@ func (h *InitializationHandler) TestEmbeddingModel(c *gin.Context) {
 	logger.Infof(ctx, "Embedding test succeeded, dimension: %d", len(vec))
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data":    gin.H{`available`: true, `message`: fmt.Sprintf("测试成功，向量维度=%d", len(vec)), `dimension`: len(vec)},
+		"data":    gin.H{`available`: true, `message`: fmt.Sprintf("Test successful, vector dimension=%d", len(vec)), `dimension`: len(vec)},
 	})
 }
 
@@ -1571,7 +1571,7 @@ func (h *InitializationHandler) checkRemoteModelConnection(ctx context.Context,
 	// 创建聊天实例
 	chatInstance, err := chat.NewChat(chatConfig)
 	if err != nil {
-		return false, fmt.Sprintf("创建聊天实例失败: %v", err)
+		return false, fmt.Sprintf("Failed to create chat instance: %v", err)
 	}
 
 	// 构造测试消息
@@ -1594,20 +1594,20 @@ func (h *InitializationHandler) checkRemoteModelConnection(ctx context.Context,
 	if err != nil {
 		// 根据错误类型返回不同的错误信息
 		if strings.Contains(err.Error(), "401") || strings.Contains(err.Error(), "unauthorized") {
-			return false, "认证失败，请检查API Key"
+			return false, "Authentication failed, please check API Key"
 		} else if strings.Contains(err.Error(), "403") || strings.Contains(err.Error(), "forbidden") {
-			return false, "权限不足，请检查API Key权限：" + err.Error()
+			return false, "Insufficient permissions, please check API Key permissions: " + err.Error()
 		} else if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
-			return false, "API端点不存在，请检查Base URL"
+			return false, "API endpoint does not exist, please check Base URL"
 		} else if strings.Contains(err.Error(), "timeout") {
-			return false, "连接超时，请检查网络连接"
+			return false, "Connection timeout, please check network connectivity"
 		} else {
-			return false, fmt.Sprintf("连接失败: %v", err)
+			return false, fmt.Sprintf("Connection failed: %v", err)
 		}
 	}
 
 	// 连接成功，模型可用
-	return true, "连接正常，模型可用"
+	return true, "Connection normal, model available"
 }
 
 // checkRerankModelConnection 检查Rerank模型连接和功能的内部方法
@@ -1625,7 +1625,7 @@ func (h *InitializationHandler) checkRerankModelConnection(ctx context.Context,
 	// 创建Reranker实例
 	reranker, err := rerank.NewReranker(config)
 	if err != nil {
-		return false, fmt.Sprintf("创建Reranker失败: %v", err)
+		return false, fmt.Sprintf("Failed to create Reranker: %v", err)
 	}
 
 	// 简化的测试数据
@@ -1637,14 +1637,14 @@ func (h *InitializationHandler) checkRerankModelConnection(ctx context.Context,
 	// 使用Reranker进行测试
 	results, err := reranker.Rerank(ctx, testQuery, testDocuments)
 	if err != nil {
-		return false, fmt.Sprintf("重排测试失败: %v", err)
+		return false, fmt.Sprintf("Rerank test failed: %v", err)
 	}
 
 	// 检查结果
 	if len(results) > 0 {
-		return true, fmt.Sprintf("重排功能正常，返回%d个结果", len(results))
+		return true, fmt.Sprintf("Rerank function normal, returned %d results", len(results))
 	} else {
-		return false, "重排接口连接成功，但未返回重排结果"
+		return false, "Rerank interface connected successfully, but no results returned"
 	}
 }
 
@@ -1680,7 +1680,7 @@ func (h *InitializationHandler) CheckRerankModel(c *gin.Context) {
 	// 验证请求参数
 	if req.ModelName == "" || req.BaseURL == "" {
 		logger.Error(ctx, "Model name and base URL are required")
-		c.Error(errors.NewBadRequestError("模型名称和Base URL不能为空"))
+		c.Error(errors.NewBadRequestError("Model name and base URL cannot be empty"))
 		return
 	}
 
@@ -1752,7 +1752,7 @@ func (h *InitializationHandler) TestMultimodalFunction(c *gin.Context) {
 	var req testMultimodalForm
 	if err := c.ShouldBind(&req); err != nil {
 		logger.Error(ctx, "Failed to parse form data", err)
-		c.Error(errors.NewBadRequestError("表单参数解析失败"))
+		c.Error(errors.NewBadRequestError("Failed to parse form parameters"))
 		return
 	}
 	// ollama 场景自动拼接 base url
@@ -1764,7 +1764,7 @@ func (h *InitializationHandler) TestMultimodalFunction(c *gin.Context) {
 
 	if req.VLMModel == "" || req.VLMBaseURL == "" {
 		logger.Error(ctx, "VLM model name and base URL are required")
-		c.Error(errors.NewBadRequestError("VLM模型名称和Base URL不能为空"))
+		c.Error(errors.NewBadRequestError("VLM model name and Base URL cannot be empty"))
 		return
 	}
 	switch req.StorageType {
@@ -1774,18 +1774,18 @@ func (h *InitializationHandler) TestMultimodalFunction(c *gin.Context) {
 			req.COSRegion == "" || req.COSBucketName == "" ||
 			req.COSAppID == "" {
 			logger.Error(ctx, "COS configuration is required")
-			c.Error(errors.NewBadRequestError("COS配置信息不能为空"))
+			c.Error(errors.NewBadRequestError("COS configuration cannot be empty"))
 			return
 		}
 	case "minio":
 		if req.MinioBucketName == "" {
 			logger.Error(ctx, "MinIO configuration is required")
-			c.Error(errors.NewBadRequestError("MinIO配置信息不能为空"))
+			c.Error(errors.NewBadRequestError("MinIO configuration cannot be empty"))
 			return
 		}
 	default:
 		logger.Error(ctx, "Invalid storage type")
-		c.Error(errors.NewBadRequestError("无效的存储类型"))
+		c.Error(errors.NewBadRequestError("Invalid storage type"))
 		return
 	}
 
@@ -1793,7 +1793,7 @@ func (h *InitializationHandler) TestMultimodalFunction(c *gin.Context) {
 	file, header, err := c.Request.FormFile("image")
 	if err != nil {
 		logger.Error(ctx, "Failed to get uploaded image", err)
-		c.Error(errors.NewBadRequestError("获取上传图片失败"))
+		c.Error(errors.NewBadRequestError("Failed to get uploaded image"))
 		return
 	}
 	defer file.Close()
@@ -1801,14 +1801,14 @@ func (h *InitializationHandler) TestMultimodalFunction(c *gin.Context) {
 	// 验证文件类型
 	if !strings.HasPrefix(header.Header.Get("Content-Type"), "image/") {
 		logger.Error(ctx, "Invalid file type, only images are allowed")
-		c.Error(errors.NewBadRequestError("只允许上传图片文件"))
+		c.Error(errors.NewBadRequestError("Only image files are allowed"))
 		return
 	}
 
 	// 验证文件大小 (10MB)
 	if header.Size > 10*1024*1024 {
 		logger.Error(ctx, "File size too large")
-		c.Error(errors.NewBadRequestError("图片文件大小不能超过10MB"))
+		c.Error(errors.NewBadRequestError("Image file size cannot exceed 10MB"))
 		return
 	}
 	logger.Infof(ctx, "Processing image: %s", utils.SanitizeForLog(header.Filename))
@@ -1849,7 +1849,7 @@ func (h *InitializationHandler) TestMultimodalFunction(c *gin.Context) {
 	imageContent, err := io.ReadAll(file)
 	if err != nil {
 		logger.Error(ctx, "Failed to read image file", err)
-		c.Error(errors.NewBadRequestError("读取图片文件失败"))
+		c.Error(errors.NewBadRequestError("Failed to read image file"))
 		return
 	}
 
@@ -1951,11 +1951,11 @@ func (h *InitializationHandler) testMultimodalWithDocReader(
 	// 调用docreader服务
 	response, err := h.docReaderClient.ReadFromFile(ctx, request)
 	if err != nil {
-		return nil, fmt.Errorf("调用DocReader服务失败: %v", err)
+		return nil, fmt.Errorf("Failed to call DocReader service: %v", err)
 	}
 
 	if response.Error != "" {
-		return nil, fmt.Errorf("DocReader服务返回错误: %s", response.Error)
+		return nil, fmt.Errorf("DocReader service returned error: %s", response.Error)
 	}
 
 	// 处理响应，提取Caption和OCR信息
@@ -2019,33 +2019,33 @@ func (h *InitializationHandler) ExtractTextRelations(c *gin.Context) {
 
 	var req TextRelationExtractionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.Error(ctx, "文本关系提取请求参数错误")
-		c.Error(errors.NewBadRequestError("文本关系提取请求参数错误"))
+		logger.Error(ctx, "Request parameter error for text relation extraction")
+		c.Error(errors.NewBadRequestError("Request parameter error for text relation extraction"))
 		return
 	}
 
 	// 验证文本内容
 	if len(req.Text) == 0 {
-		c.Error(errors.NewBadRequestError("文本内容不能为空"))
+		c.Error(errors.NewBadRequestError("Text content cannot be empty"))
 		return
 	}
 
 	if len(req.Text) > 5000 {
-		c.Error(errors.NewBadRequestError("文本内容长度不能超过5000字符"))
+		c.Error(errors.NewBadRequestError("Text content length cannot exceed 5000 characters"))
 		return
 	}
 
 	// 验证标签
 	if len(req.Tags) == 0 {
-		c.Error(errors.NewBadRequestError("至少需要选择一个关系标签"))
+		c.Error(errors.NewBadRequestError("At least one relation tag must be selected"))
 		return
 	}
 
 	// 调用模型服务进行文本关系提取
 	result, err := h.extractRelationsFromText(ctx, req.Text, req.Tags, req.LLMConfig)
 	if err != nil {
-		logger.Error(ctx, "文本关系提取失败", err)
-		c.Error(errors.NewInternalServerError("文本关系提取失败: " + err.Error()))
+		logger.Error(ctx, "Text relation extraction failed", err)
+		c.Error(errors.NewInternalServerError("Text relation extraction failed: " + err.Error()))
 		return
 	}
 
@@ -2070,7 +2070,7 @@ func (h *InitializationHandler) extractRelationsFromText(
 		Source:    types.ModelSource(llm.Source),
 	})
 	if err != nil {
-		logger.Error(ctx, "初始化模型服务失败", err)
+		logger.Error(ctx, "Failed to initialize model service", err)
 		return nil, err
 	}
 
@@ -2083,7 +2083,7 @@ func (h *InitializationHandler) extractRelationsFromText(
 	extractor := chatpipline.NewExtractor(chatModel, template)
 	graph, err := extractor.Extract(ctx, text)
 	if err != nil {
-		logger.Error(ctx, "文本关系提取失败", err)
+		logger.Error(ctx, "Text relation extraction failed", err)
 		return nil, err
 	}
 	extractor.RemoveUnknownRelation(ctx, graph)
@@ -2124,15 +2124,15 @@ func (h *InitializationHandler) FabriText(c *gin.Context) {
 
 	var req FabriTextRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.Error(ctx, "生成示例文本请求参数错误")
-		c.Error(errors.NewBadRequestError("生成示例文本请求参数错误"))
+		logger.Error(ctx, "Request parameter error for generating example text")
+		c.Error(errors.NewBadRequestError("Request parameter error for generating example text"))
 		return
 	}
 
 	result, err := h.fabriText(ctx, req.Tags, req.LLMConfig)
 	if err != nil {
-		logger.Error(ctx, "生成示例文本失败", err)
-		c.Error(errors.NewInternalServerError("生成示例文本失败: " + err.Error()))
+		logger.Error(ctx, "Failed to generate example text", err)
+		c.Error(errors.NewInternalServerError("Failed to generate example text: " + err.Error()))
 		return
 	}
 
@@ -2152,7 +2152,7 @@ func (h *InitializationHandler) fabriText(ctx context.Context, tags []string, ll
 		Source:    types.ModelSource(llm.Source),
 	})
 	if err != nil {
-		logger.Error(ctx, "初始化模型服务失败", err)
+		logger.Error(ctx, "Failed to initialize model service", err)
 		return "", err
 	}
 
@@ -2171,7 +2171,7 @@ func (h *InitializationHandler) fabriText(ctx context.Context, tags []string, ll
 		Thinking:    &think,
 	})
 	if err != nil {
-		logger.Error(ctx, "生成示例文本失败", err)
+		logger.Error(ctx, "Failed to generate example text", err)
 		return "", err
 	}
 	return result.Content, nil
@@ -2188,7 +2188,7 @@ type FabriTagResponse struct {
 }
 
 var tagOptions = []string{
-	"内容", "文化", "人物", "事件", "时间", "地点", "作品", "作者", "关系", "属性",
+	"Content", "Culture", "Person", "Event", "Time", "Place", "Work", "Author", "Relation", "Attribute",
 }
 
 // FabriTag godoc
