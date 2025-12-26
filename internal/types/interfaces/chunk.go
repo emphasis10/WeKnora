@@ -45,7 +45,8 @@ type ChunkRepository interface {
 	// DeleteByKnowledgeList deletes all chunks for a knowledge list
 	DeleteByKnowledgeList(ctx context.Context, tenantID uint64, knowledgeIDs []string) error
 	// DeleteChunksByTagID deletes all chunks with the specified tag ID
-	DeleteChunksByTagID(ctx context.Context, tenantID uint64, kbID string, tagID string) error
+	// Returns the IDs of deleted chunks for index cleanup
+	DeleteChunksByTagID(ctx context.Context, tenantID uint64, kbID string, tagID string, excludeIDs []string) ([]string, error)
 	// CountChunksByKnowledgeBaseID counts the number of chunks in a knowledge base.
 	CountChunksByKnowledgeBaseID(ctx context.Context, tenantID uint64, kbID string) (int64, error)
 	// DeleteUnindexedChunks deletes unindexed chunks by knowledge id and chunk index range
@@ -63,8 +64,9 @@ type ChunkRepository interface {
 	// clearFlags: map of chunk ID to flags to clear (AND NOT operation)
 	UpdateChunkFlagsBatch(ctx context.Context, tenantID uint64, kbID string, setFlags map[string]types.ChunkFlags, clearFlags map[string]types.ChunkFlags) error
 	// UpdateChunkFieldsByTagID updates fields for all chunks with the specified tag ID.
-	// Supports updating is_enabled and flags fields.
-	UpdateChunkFieldsByTagID(ctx context.Context, tenantID uint64, kbID string, tagID string, isEnabled *bool, setFlags types.ChunkFlags, clearFlags types.ChunkFlags) ([]string, error)
+	// Supports updating is_enabled, flags, and tag_id fields.
+	// newTagID: if not nil, updates tag_id to this value (empty string means uncategorized)
+	UpdateChunkFieldsByTagID(ctx context.Context, tenantID uint64, kbID string, tagID string, isEnabled *bool, setFlags types.ChunkFlags, clearFlags types.ChunkFlags, newTagID *string, excludeIDs []string) ([]string, error)
 	// FAQChunkDiff compares FAQ chunks between two knowledge bases and returns the differences.
 	// Returns: chunksToAdd (content_hash in src but not in dst), chunksToDelete (content_hash in dst but not in src)
 	FAQChunkDiff(ctx context.Context, srcTenantID uint64, srcKBID string, dstTenantID uint64, dstKBID string) (chunksToAdd []string, chunksToDelete []string, err error)

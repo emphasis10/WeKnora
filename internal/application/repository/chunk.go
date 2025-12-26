@@ -90,7 +90,7 @@ func (r *chunkRepository) ListPagedChunksByKnowledgeID(
 	baseFilter := func(db *gorm.DB) *gorm.DB {
 		db = db.Where("tenant_id = ? AND knowledge_id = ? AND chunk_type IN (?) AND status in (?)",
 			tenantID, knowledgeID, chunkType, []int{int(types.ChunkStatusIndexed), int(types.ChunkStatusDefault)})
-		if tagID == "__untagged__" {
+		if tagID == types.UntaggedTagID {
 			// Special value to filter entries without a tag
 			db = db.Where("tag_id = ''")
 		} else if tagID != "" {
@@ -98,19 +98,40 @@ func (r *chunkRepository) ListPagedChunksByKnowledgeID(
 		}
 		if keyword != "" {
 			like := "%" + keyword + "%"
+			// 根据数据库类型使用不同的 JSON 查询语法
+			isPostgres := db.Dialector.Name() == "postgres"
+
 			switch searchField {
 			case "standard_question":
 				// Search only in standard_question field of metadata
-				db = db.Where("metadata->>'standard_question' ILIKE ?", like)
+				if isPostgres {
+					db = db.Where("metadata->>'standard_question' ILIKE ?", like)
+				} else {
+					// MySQL: metadata->>'$.standard_question' (MySQL 5.7.13+)
+					// 也可以用 JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.standard_question'))
+					db = db.Where("metadata->>'$.standard_question' LIKE ?", like)
+				}
 			case "similar_questions":
 				// Search in similar_questions array of metadata
-				db = db.Where("metadata->'similar_questions'::text ILIKE ?", like)
+				if isPostgres {
+					db = db.Where("metadata->'similar_questions'::text ILIKE ?", like)
+				} else {
+					db = db.Where("JSON_EXTRACT(metadata, '$.similar_questions') LIKE ?", like)
+				}
 			case "answers":
 				// Search in answers array of metadata
-				db = db.Where("metadata->'answers'::text ILIKE ?", like)
+				if isPostgres {
+					db = db.Where("metadata->'answers'::text ILIKE ?", like)
+				} else {
+					db = db.Where("JSON_EXTRACT(metadata, '$.answers') LIKE ?", like)
+				}
 			default:
 				// Search in all fields (content and metadata)
-				db = db.Where("(content ILIKE ? OR metadata::text ILIKE ?)", like, like)
+				if isPostgres {
+					db = db.Where("(content ILIKE ? OR metadata::text ILIKE ?)", like, like)
+				} else {
+					db = db.Where("(content LIKE ? OR CAST(metadata AS CHAR) LIKE ?)", like, like)
+				}
 			}
 		}
 		return db
@@ -292,10 +313,50 @@ func (r *chunkRepository) DeleteByKnowledgeList(ctx context.Context, tenantID ui
 }
 
 // DeleteChunksByTagID deletes all chunks with the specified tag ID
-func (r *chunkRepository) DeleteChunksByTagID(ctx context.Context, tenantID uint64, kbID string, tagID string) error {
-	return r.db.WithContext(ctx).Where(
-		"tenant_id = ? AND knowledge_base_id = ? AND tag_id = ?", tenantID, kbID, tagID,
-	).Delete(&types.Chunk{}).Error
+// Returns the IDs of deleted chunks for index cleanup
+func (r *chunkRepository) DeleteChunksByTagID(ctx context.Context, tenantID uint64, kbID string, tagID string, excludeIDs []string) ([]string, error) {
+	// Build exclude set for O(1) lookup
+	excludeSet := make(map[string]struct{}, len(excludeIDs))
+	for _, id := range excludeIDs {
+		excludeSet[id] = struct{}{}
+	}
+
+	// Get all chunk IDs for this tag
+	var allIDs []string
+	if err := r.db.WithContext(ctx).Model(&types.Chunk{}).
+		Where("tenant_id = ? AND knowledge_base_id = ? AND tag_id = ?", tenantID, kbID, tagID).
+		Pluck("id", &allIDs).Error; err != nil {
+		return nil, err
+	}
+
+	// Filter out excluded IDs
+	toDelete := make([]string, 0, len(allIDs))
+	for _, id := range allIDs {
+		if _, excluded := excludeSet[id]; !excluded {
+			toDelete = append(toDelete, id)
+		}
+	}
+
+	if len(toDelete) == 0 {
+		return nil, nil
+	}
+
+	// Delete in batches
+	const batchSize = 1000
+	for i := 0; i < len(toDelete); i += batchSize {
+		end := i + batchSize
+		if end > len(toDelete) {
+			end = len(toDelete)
+		}
+		batch := toDelete[i:end]
+
+		if err := r.db.WithContext(ctx).Where("id IN ?", batch).Delete(&types.Chunk{}).Error; err != nil {
+			// Return already planned deletions up to this point for index cleanup
+			return toDelete[:i], err
+		}
+	}
+
+	return toDelete, nil
 }
 
 // CountChunksByKnowledgeBaseID counts the number of chunks in a knowledge base
@@ -540,6 +601,7 @@ func (r *chunkRepository) UpdateChunkFlagsBatch(
 
 // UpdateChunkFieldsByTagID updates fields for all chunks with the specified tag ID.
 // Returns the list of affected chunk IDs for syncing with retriever engines.
+// newTagID: if not nil, updates tag_id to this value (empty string means uncategorized)
 func (r *chunkRepository) UpdateChunkFieldsByTagID(
 	ctx context.Context,
 	tenantID uint64,
@@ -548,6 +610,8 @@ func (r *chunkRepository) UpdateChunkFieldsByTagID(
 	isEnabled *bool,
 	setFlags types.ChunkFlags,
 	clearFlags types.ChunkFlags,
+	newTagID *string,
+	excludeIDs []string,
 ) ([]string, error) {
 	// First, get the IDs of chunks that will be affected (for is_enabled sync)
 	var affectedIDs []string
@@ -557,11 +621,16 @@ func (r *chunkRepository) UpdateChunkFieldsByTagID(
 			Select("id").
 			Where("tenant_id = ? AND knowledge_base_id = ? AND chunk_type = ?",
 				tenantID, kbID, types.ChunkTypeFAQ)
-		if tagID == "" {
+		if tagID == "" || tagID == types.UntaggedTagID {
 			query = query.Where("(tag_id = '' OR tag_id IS NULL)")
 		} else {
 			query = query.Where("tag_id = ?", tagID)
 		}
+
+		if len(excludeIDs) > 0 {
+			query = query.Where("id NOT IN ?", excludeIDs)
+		}
+
 		// Only get chunks that need to change
 		query = query.Where("is_enabled != ?", *isEnabled)
 		if err := query.Find(&chunks).Error; err != nil {
@@ -581,14 +650,27 @@ func (r *chunkRepository) UpdateChunkFieldsByTagID(
 		updates["is_enabled"] = *isEnabled
 	}
 
+	// Handle newTagID update (__untagged__ is stored as empty string)
+	if newTagID != nil {
+		if *newTagID == types.UntaggedTagID || *newTagID == "" {
+			updates["tag_id"] = ""
+		} else {
+			updates["tag_id"] = *newTagID
+		}
+	}
+
 	query := r.db.WithContext(ctx).Model(&types.Chunk{}).
 		Where("tenant_id = ? AND knowledge_base_id = ? AND chunk_type = ?",
 			tenantID, kbID, types.ChunkTypeFAQ)
 
-	if tagID == "" {
+	if tagID == "" || tagID == types.UntaggedTagID {
 		query = query.Where("(tag_id = '' OR tag_id IS NULL)")
 	} else {
 		query = query.Where("tag_id = ?", tagID)
+	}
+
+	if len(excludeIDs) > 0 {
+		query = query.Where("id NOT IN ?", excludeIDs)
 	}
 
 	// Handle flags update
