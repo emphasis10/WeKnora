@@ -33,26 +33,26 @@ export default function (knowledgeBaseId?: string) {
   ) => {
     const targetKbId = kbId || knowledgeBaseId;
     if (!targetKbId) return;
-    
+
     listKnowledgeFiles(targetKbId, query)
       .then((result: any) => {
         const { data, total: totalResult } = result;
-    const cardList_ = data.map((item: any) => {
-      const rawName = item.file_name || item.title || item.source || '未命名文档'
-      const dotIndex = rawName.lastIndexOf('.')
-      const displayName = dotIndex > 0 ? rawName.substring(0, dotIndex) : rawName
-      const fileTypeSource = item.file_type || (item.type === 'manual' ? 'MANUAL' : '')
-      return {
-        ...item,
-        original_file_name: item.file_name,
-        display_name: displayName,
-        file_name: displayName,
-        updated_at: formatStringDate(new Date(item.updated_at)),
-        isMore: false,
-        file_type: fileTypeSource ? String(fileTypeSource).toLocaleUpperCase() : '',
-      }
-    });
-        
+        const cardList_ = data.map((item: any) => {
+          const rawName = item.file_name || item.title || item.source || 'Untitled Document'
+          const dotIndex = rawName.lastIndexOf('.')
+          const displayName = dotIndex > 0 ? rawName.substring(0, dotIndex) : rawName
+          const fileTypeSource = item.file_type || (item.type === 'manual' ? 'MANUAL' : '')
+          return {
+            ...item,
+            original_file_name: item.file_name,
+            display_name: displayName,
+            file_name: displayName,
+            updated_at: formatStringDate(new Date(item.updated_at)),
+            isMore: false,
+            file_type: fileTypeSource ? String(fileTypeSource).toLocaleUpperCase() : '',
+          }
+        });
+
         if (query.page === 1) {
           cardList.value = cardList_;
         } else {
@@ -60,7 +60,7 @@ export default function (knowledgeBaseId?: string) {
         }
         total.value = totalResult;
       })
-      .catch(() => {});
+      .catch(() => { });
   };
   const delKnowledge = (index: number, item: any) => {
     cardList.value[index].isMore = false;
@@ -68,14 +68,14 @@ export default function (knowledgeBaseId?: string) {
     delKnowledgeDetails(item.id)
       .then((result: any) => {
         if (result.success) {
-          MessagePlugin.info("知识删除成功！");
+          MessagePlugin.info("Knowledge deleted successfully!");
           getKnowled();
         } else {
-          MessagePlugin.error("知识删除失败！");
+          MessagePlugin.error("Failed to delete knowledge!");
         }
       })
       .catch(() => {
-        MessagePlugin.error("知识删除失败！");
+        MessagePlugin.error("Failed to delete knowledge!");
       });
   };
   const openMore = (index: number) => {
@@ -88,14 +88,14 @@ export default function (knowledgeBaseId?: string) {
   };
   const requestMethod = (file: any, uploadInput: any) => {
     if (!(file instanceof File) || !uploadInput) {
-      MessagePlugin.error("文件类型错误！");
+      MessagePlugin.error("Invalid file type!");
       return;
     }
-    
+
     if (kbFileTypeVerification(file)) {
       return;
     }
-    
+
     // 获取当前知识库ID
     let currentKbId: string | undefined = (route.params as any)?.kbId as string;
     if (!currentKbId && typeof window !== 'undefined') {
@@ -106,24 +106,24 @@ export default function (knowledgeBaseId?: string) {
       currentKbId = knowledgeBaseId;
     }
     if (!currentKbId) {
-      MessagePlugin.error("缺少知识库ID");
+      MessagePlugin.error("Missing knowledge base ID");
       return;
     }
-    
+
     uploadKnowledgeFile(currentKbId, { file })
       .then((result: any) => {
         if (result.success) {
-          MessagePlugin.info("上传成功！");
+          MessagePlugin.info("Upload successful!");
           getKnowled({ page: 1, page_size: 35 }, currentKbId);
         } else {
-          const errorMessage = result.error?.message || result.message || "上传失败！";
-          MessagePlugin.error(result.code === 'duplicate_file' ? "文件已存在" : errorMessage);
+          const errorMessage = result.error?.message || result.message || "Upload failed!";
+          MessagePlugin.error(result.code === 'duplicate_file' ? "File already exists" : errorMessage);
         }
         uploadInput.value.value = "";
       })
       .catch((err: any) => {
-        const errorMessage = err.error?.message || err.message || "上传失败！";
-        MessagePlugin.error(err.code === 'duplicate_file' ? "文件已存在" : errorMessage);
+        const errorMessage = err.error?.message || err.message || "Upload failed!";
+        MessagePlugin.error(err.code === 'duplicate_file' ? "File already exists" : errorMessage);
         uploadInput.value.value = "";
       });
   };
@@ -142,7 +142,7 @@ export default function (knowledgeBaseId?: string) {
         if (result.success && result.data) {
           const { data } = result;
           Object.assign(details, {
-            title: data.file_name || data.title || data.source || '未命名文档',
+            title: data.file_name || data.title || data.source || 'Untitled Document',
             time: formatStringDate(new Date(data.updated_at)),
             id: data.id,
             type: data.type || 'file',
@@ -151,10 +151,10 @@ export default function (knowledgeBaseId?: string) {
           });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
     getfDetails(item.id, 1);
   };
-  
+
   const getfDetails = (id: string, page: number) => {
     getKnowledgeDetailsCon(id, page)
       .then((result: any) => {
@@ -168,7 +168,7 @@ export default function (knowledgeBaseId?: string) {
           details.total = totalResult;
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   };
   return {
     cardList,
