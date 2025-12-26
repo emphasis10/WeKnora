@@ -58,7 +58,7 @@ services:
       - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD:-}
       - ELASTICSEARCH_INDEX=${ELASTICSEARCH_INDEX:-}
       - QDRANT_HOST=qdrant
-      - QDRANT_PORT=${QDRANT_PORT:-6334}
+      - QDRANT_PORT=6334
       - QDRANT_COLLECTION=${QDRANT_COLLECTION:-weknora_embeddings}
       - QDRANT_API_KEY=${QDRANT_API_KEY:-}
       - QDRANT_USE_TLS=${QDRANT_USE_TLS:-false}
@@ -251,8 +251,8 @@ services:
     image: qdrant/qdrant:v1.16.2
     container_name: WeKnora-qdrant
     ports:
-      - "${QDRANT_REST_PORT:-6333}:6333"
-      - "${QDRANT_PORT:-6334}:6334"
+      - "${QDRANT_EXTERNAL_REST_PORT:-6333}:6333"
+      - "${QDRANT_EXTERNAL_GRPC_PORT:-6334}:6334"
     volumes:
       - qdrant_data:/qdrant/storage
     networks:
