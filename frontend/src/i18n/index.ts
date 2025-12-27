@@ -1,12 +1,14 @@
 import { createI18n } from 'vue-i18n'
-import zhCN from './locales/zh-CN.ts'
-import ruRU from './locales/ru-RU.ts'
-import enUS from './locales/en-US.ts'
+import zhCN from './locales/zh-CN'
+import ruRU from './locales/ru-RU'
+import enUS from './locales/en-US'
+import koKR from './locales/ko-KR'
 
 const messages = {
   'zh-CN': zhCN,
   'en-US': enUS,
-  'ru-RU': ruRU
+  'ru-RU': ruRU,
+  'ko-KR': koKR
 }
 
 // Получаем сохраненный язык из localStorage или используем китайский по умолчанию
