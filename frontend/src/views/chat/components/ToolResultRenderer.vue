@@ -178,7 +178,7 @@ const toolArguments = computed(() => props.arguments || {});
       background: #ffffff;
       display: block;
       
-      // 滚动条样式
+      // Scrollbar styles
       &::-webkit-scrollbar {
         width: 8px;
         height: 8px;

@@ -4,7 +4,7 @@ import App from "./App.vue";
 import router from "./router";
 import "./assets/fonts.css";
 import TDesign from "tdesign-vue-next";
-// 引入组件库的少量全局样式变量
+// Import a few global style variables from the component library
 import "tdesign-vue-next/es/style/index.css";
 import "@/assets/theme/theme.css";
 import i18n from "./i18n";

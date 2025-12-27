@@ -35,7 +35,7 @@ import { useI18n } from 'vue-i18n';
 const isFold = ref(true)
 const { t } = useI18n()
 const props = defineProps({
-    // 必填项
+    // Required fields
     deepSession: {
         type: Object,
         required: false
@@ -56,14 +56,14 @@ const handlePanelChange = (val) => {
     isFold.value = !val.length ? true : false;
 }
 
-// 安全地处理思考内容，防止XSS攻击
+// Safely handle thinking content to prevent XSS attacks
 const safeProcessThinkContent = (content) => {
     if (!content || typeof content !== 'string') return '';
     
-    // 先处理换行符
+    // First handle newlines
     const contentWithBreaks = content.replace(/\n/g, '<br/>');
     
-    // 使用DOMPurify进行安全清理，允许基本的文本格式化标签
+    // Use DOMPurify for safe cleanup, allowing basic text formatting tags
     const cleanContent = sanitizeHTML(contentWithBreaks);
     
     return cleanContent;

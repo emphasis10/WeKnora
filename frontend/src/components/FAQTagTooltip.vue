@@ -48,7 +48,7 @@ const updatePosition = async () => {
   
   await nextTick()
   
-  // 再次检查，确保DOM已渲染
+  // Check again to ensure DOM is rendered
   if (!tooltipRef.value) return
   
   const rect = wrapperRef.value.getBoundingClientRect()
@@ -77,14 +77,14 @@ const updatePosition = async () => {
       break
   }
   
-  // 边界检测
+  // Boundary detection
   const padding = 8
   if (left < padding) left = padding
   if (left + tooltipRect.width > window.innerWidth - padding) {
     left = window.innerWidth - tooltipRect.width - padding
   }
   if (top < padding) {
-    // 如果上方空间不足，改为下方显示
+    // If not enough space above, show below instead
     if (placement === 'top') {
       top = rect.bottom + 8
     } else {
@@ -141,7 +141,7 @@ watch(showTooltip, (newVal) => {
   flex-shrink: 1;
   flex: 0 1 auto;
   
-  // 确保内部的tag也能正确收缩
+  // Ensure internal tags can shrink correctly
   :deep(.t-tag) {
     max-width: 100% !important;
     min-width: 0 !important;
@@ -262,12 +262,12 @@ watch(showTooltip, (newVal) => {
     border-right-color: #FFFFFF;
   }
 
-  // 所有类型使用统一的常规边框颜色
+  // All types use uniform regular border color
   &.tooltip-answer,
   &.tooltip-similar,
   &.tooltip-negative {
-    // 边框和箭头颜色已在主样式中定义为 #e7ebf0
-    // 无需额外覆盖
+    // Border and arrow colors already defined as #e7ebf0 in main style
+    // No additional override needed
   }
 }
 

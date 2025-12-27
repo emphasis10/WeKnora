@@ -11,9 +11,9 @@ const messages = {
   'ko-KR': koKR
 }
 
-// Получаем сохраненный язык из localStorage или используем китайский по умолчанию
+// Get saved language from localStorage or use Chinese as default
 const savedLocale = localStorage.getItem('locale') || 'zh-CN'
-console.log('i18n инициализация с языком:', savedLocale)
+console.log('i18n initialization with language:', savedLocale)
 
 const i18n = createI18n({
   legacy: false,

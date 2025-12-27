@@ -103,11 +103,11 @@ const scrollToItem = (index: number) => {
       const menuRect = menu.getBoundingClientRect();
       const itemRect = activeItem.getBoundingClientRect();
       
-      // 检查是否在上方被遮挡
+      // Check if obscured from above
       if (itemRect.top < menuRect.top) {
         menu.scrollTop -= (menuRect.top - itemRect.top);
       }
-      // 检查是否在下方被遮挡
+      // Check if obscured from below
       else if (itemRect.bottom > menuRect.bottom) {
         menu.scrollTop += (itemRect.bottom - menuRect.bottom);
       }

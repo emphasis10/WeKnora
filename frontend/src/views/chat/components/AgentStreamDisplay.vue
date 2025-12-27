@@ -169,14 +169,14 @@
     
     <!-- Loading Indicator -->
     <div v-if="!isConversationDone && eventStream.length > 0" class="loading-indicator" :class="{ 'no-timeline': !shouldShowTimeline }">
-      <!-- 方案1: 三个跳动的圆点 -->
+      <!-- Option 1: Three jumping dots -->
       <!-- <div class="loading-dots">
         <span></span>
         <span></span>
         <span></span>
       </div> -->
       
-      <!-- 方案4: 打字机效果（注释掉，可替换使用） -->
+      <!-- Option 4: Typewriter effect (commented out, can be used as replacement) -->
       <div class="loading-typing">
         <span></span>
         <span></span>
@@ -185,7 +185,7 @@
       
     </div>
   </div>
-  <!-- 全局浮层：统一承载 Web/KB 的 hover 内容 -->
+  <!-- Global floating layer: uniform container for Web/KB hover content -->
   <Teleport to="body">
     <div
       v-if="floatPopup.visible"
@@ -231,18 +231,18 @@ const uiStore = useUIStore();
 const { t } = useI18n();
 
 const TOOL_NAME_I18N: Record<string, string> = {
-  search_knowledge: '知识库检索',
-  knowledge_search: '知识库检索',
-  grep_chunks: '文本模式搜索',
-  web_search: '网络搜索',
-  web_fetch: '网页抓取',
-  get_document_info: '获取文档信息',
-  list_knowledge_chunks: '查看知识分块',
-  get_related_documents: '查找相关文档',
-  get_document_content: '获取文档内容',
-  todo_write: '计划管理',
-  knowledge_graph_extract: '知识图谱抽取',
-  thinking: '思考',
+  search_knowledge: 'Knowledge Base Search',
+  knowledge_search: 'Knowledge Base Search',
+  grep_chunks: 'Text Pattern Search',
+  web_search: 'Web Search',
+  web_fetch: 'Web Fetch',
+  get_document_info: 'Get Document Info',
+  list_knowledge_chunks: 'View Knowledge Chunks',
+  get_related_documents: 'Find Related Documents',
+  get_document_content: 'Get Document Content',
+  todo_write: 'Plan Management',
+  knowledge_graph_extract: 'Knowledge Graph Extraction',
+  thinking: 'Thinking',
 };
 
 const getLocalizedToolName = (toolName?: string | null): string => {
@@ -250,10 +250,10 @@ const getLocalizedToolName = (toolName?: string | null): string => {
   return TOOL_NAME_I18N[toolName] || toolName;
 };
 
-// 根元素引用
+// Root element reference
 const rootElement = ref<HTMLElement | null>(null);
 
-// 图片预览状态
+// Image preview state
 const imagePreviewVisible = ref(false);
 const imagePreviewUrl = ref('');
 
@@ -266,7 +266,7 @@ const closeImagePreview = () => {
   imagePreviewVisible.value = false;
 };
 
-// 浮层状态（Web/KB 共用）
+// Floating layer state (shared between Web/KB)
 const KB_SNIPPET_LIMIT = 600;
 
 const floatPopup = ref<{
@@ -560,37 +560,37 @@ const intermediateStepsSummary = computed(() => {
   
   const parts: string[] = [];
   if (searchCount > 0) {
-    parts.push(`检索知识库 <strong>${searchCount}</strong> 次`);
+    parts.push(`Searched knowledge base <strong>${searchCount}</strong> times`);
   }
   if (thinkingCount > 0) {
-    parts.push(`思考 <strong>${thinkingCount}</strong> 次`);
+    parts.push(`Thought <strong>${thinkingCount}</strong> times`);
   }
   if (toolCalls.length > 0) {
     const toolNames = toolCalls.map(name => {
-      if (name === 'get_document_info') return '获取文档';
-      if (name === 'list_knowledge_chunks') return '查看知识分块';
+      if (name === 'get_document_info') return 'Get document';
+      if (name === 'list_knowledge_chunks') return 'View knowledge chunks';
       return name;
     });
     if (toolNames.length === 1) {
-      parts.push(`调用 ${toolNames[0]}`);
+      parts.push(`Called ${toolNames[0]}`);
     } else {
-      parts.push(`调用工具 ${toolNames.join('、')}`);
+      parts.push(`Called tools ${toolNames.join(', ')}`);
     }
   }
   
   if (parts.length === 0) {
-    return `<strong>${intermediateStepsCount.value}</strong> 个中间步骤`;
+    return `<strong>${intermediateStepsCount.value}</strong> intermediate steps`;
   }
   
-  // 优化连接词，使语句更流畅
+  // Optimize conjunctions for better flow
   if (parts.length === 1) {
     return parts[0];
   } else if (parts.length === 2) {
-    return `${parts[0]}，${parts[1]}`;
+    return `${parts[0]}, ${parts[1]}`;
   } else {
-    // 3个或以上：前几个用顿号，最后一个用逗号
+    // 3 or more: use commas for all, and "and" for the last one (or just commas as per target language style)
     const last = parts.pop();
-    return `${parts.join('、')}，${last}`;
+    return `${parts.join(', ')}, ${last}`;
   }
 });
 
@@ -767,7 +767,7 @@ const handleCitationActivate = (el: HTMLElement) => {
   }
 };
 
-// KB citations: 悬停用浮层展示摘要；点击跳转 KB 详情
+// KB citations: use floating layer for snippet on hover; click to jump to KB details
 type KbTooltipState = {
   loading: boolean;
   error?: string;
@@ -796,7 +796,7 @@ const getKbTooltipInnerHtml = (state: KbTooltipState): string => {
   if (state.html) {
     return state.html;
   }
-  return `<span class="tip-loading">加载中...</span>`;
+  return `<span class="tip-loading">Loading...</span>`;
 };
 
 const syncFloatPopupFromCache = (chunkId: string, state: KbTooltipState) => {
@@ -840,10 +840,10 @@ const loadChunkDetails = async (chunkId: string) => {
       return;
     }
 
-    setKbCacheState(chunkId, { loading: false, error: '未找到内容' });
+    setKbCacheState(chunkId, { loading: false, error: 'Content not found' });
   } catch (error: any) {
     console.error('Failed to load chunk details:', error);
-    const errorMsg = error?.message || '加载失败';
+    const errorMsg = error?.message || 'Load failed';
     setKbCacheState(chunkId, { loading: false, error: errorMsg });
   }
 };
@@ -860,7 +860,7 @@ const updateKBCitationTooltip = (chunkId: string, state: KbTooltipState) => {
         tipElement.innerHTML = `
           <span class="t-popup__content">
             ${inner}
-            <span class="tip-meta">片段ID: ${shortChunkId}</span>
+            <span class="tip-meta">Chunk ID: ${shortChunkId}</span>
           </span>
         `;
       };
@@ -870,7 +870,7 @@ const updateKBCitationTooltip = (chunkId: string, state: KbTooltipState) => {
   });
 };
 
-// 统一 hover 入口（Web/KB）
+// Unified hover entry (Web/KB)
 let kbHoverTimer: number | null = null;
 const onHover = (e: Event) => {
   const target = e.target as HTMLElement;
@@ -1021,7 +1021,7 @@ const onRootKeydown = (e: KeyboardEvent) => {
 };
 
 onMounted(() => {
-  // 使用 nextTick 确保 DOM 已渲染
+  // Use nextTick to ensure DOM is rendered
   nextTick(() => {
     const root = rootElement.value;
     if (!root) return;
@@ -1030,7 +1030,7 @@ onMounted(() => {
     // Store on element for removal
     (root as any).__citationKeydown__ = keydownListener;
     root.addEventListener('keydown', keydownListener, true);
-    // 统一 hover 监听
+    // Unified hover listener
     root.addEventListener('mouseover', onHover, true);
     root.addEventListener('mouseout', onHoverOut, true);
     window.addEventListener('scroll', scheduleFloatClose, true);
@@ -1141,7 +1141,7 @@ const preprocessMarkdown = (contentStr: string): string => {
         };
 
         const displayDoc = escapeHtml(truncateMiddle(doc));
-        return `<span class="citation citation-kb" data-kb-id="${safeKbId}" data-chunk-id="${safeChunkId}" data-doc="${safeDoc}" role="button" tabindex="0"><span class="citation-icon kb"></span><span class="citation-text">${displayDoc}</span><span class="citation-tip"><span class="t-popup__content"><span class="tip-loading">加载中...</span></span></span></span>`;
+        return `<span class="citation citation-kb" data-kb-id="${safeKbId}" data-chunk-id="${safeChunkId}" data-doc="${safeDoc}" role="button" tabindex="0"><span class="citation-icon kb"></span><span class="citation-text">${displayDoc}</span><span class="citation-tip"><span class="t-popup__content"><span class="tip-loading">Loading...</span></span></span></span>`;
       }
     );
 };
@@ -1201,12 +1201,12 @@ const getToolSummary = (event: any): string => {
     return '';
   } else if (toolName === 'get_document_info') {
     if (toolData?.title) {
-      return `获取文档：${toolData.title}`;
+      return `Get document: ${toolData.title}`;
     }
   } else if (toolName === 'list_knowledge_chunks') {
     if (toolData?.fetched_chunks !== undefined) {
-      const title = toolData?.knowledge_title || toolData?.knowledge_id || '文档';
-      return `查看 ${title} 的 ${toolData.fetched_chunks}/${toolData.total_chunks ?? '?'} 个分块`;
+      const title = toolData?.knowledge_title || toolData?.knowledge_id || 'Document';
+      return `View ${title}'s ${toolData.fetched_chunks}/${toolData.total_chunks ?? '?'} chunks`;
     }
   } else if (toolName === 'todo_write') {
     // Extract steps from tool data
@@ -1217,15 +1217,15 @@ const getToolSummary = (event: any): string => {
       const completed = steps.filter((s: any) => s.status === 'completed').length;
       
       const parts = [];
-      if (inProgress > 0) parts.push(`🚀 进行中 ${inProgress}`);
-      if (pending > 0) parts.push(`📋 待处理 ${pending}`);
-      if (completed > 0) parts.push(`✅ 已完成 ${completed}`);
+      if (inProgress > 0) parts.push(`🚀 In progress ${inProgress}`);
+      if (pending > 0) parts.push(`📋 Pending ${pending}`);
+      if (completed > 0) parts.push(`✅ Completed ${completed}`);
       
       return parts.join(' · ');
     }
   } else if (toolName === 'thinking') {
     // Return truthy value to trigger rendering, actual content rendered in template
-    return toolData?.thought ? '深度思考' : '';
+    return toolData?.thought ? 'Deep Thinking' : '';
   }
   
   return '';
@@ -1258,7 +1258,7 @@ const getPlanStatusItems = (event: any) => {
     items.push({
       icon: 'play-circle-filled',
       class: 'in-progress',
-      label: '进行中',
+      label: 'In Progress',
       count: parts.inProgress
     });
   }
@@ -1267,7 +1267,7 @@ const getPlanStatusItems = (event: any) => {
     items.push({
       icon: 'time',
       class: 'pending',
-      label: '待处理',
+      label: 'Pending',
       count: parts.pending
     });
   }
@@ -1276,7 +1276,7 @@ const getPlanStatusItems = (event: any) => {
     items.push({
       icon: 'check-circle-filled',
       class: 'completed',
-      label: '已完成',
+      label: 'Completed',
       count: parts.completed
     });
   }
@@ -1288,15 +1288,15 @@ const getPlanStatusItems = (event: any) => {
 const getPlanStatusSummary = (event: any): string => {
   const parts = getPlanStatusParts(event);
   const textParts = [];
-  if (parts.inProgress > 0) textParts.push(`🚀 进行中 ${parts.inProgress}`);
-  if (parts.pending > 0) textParts.push(`📋 待处理 ${parts.pending}`);
-  if (parts.completed > 0) textParts.push(`✅ 已完成 ${parts.completed}`);
+  if (parts.inProgress > 0) textParts.push(`🚀 In progress ${parts.inProgress}`);
+  if (parts.pending > 0) textParts.push(`📋 Pending ${parts.pending}`);
+  if (parts.completed > 0) textParts.push(`✅ Completed ${parts.completed}`);
   return textParts.length > 0 ? textParts.join(' · ') : '';
 };
 
 // Check if tool should use book icon
 const isBookIcon = (toolName: string): boolean => {
-  return false; // 不再使用 t-icon 的 book，改用 SVG 图标
+  return false; // No longer use book icon from t-icon, use SVG instead
 };
 
 // Get icon for tool type
@@ -1324,15 +1324,15 @@ const getSearchResultsSummary = (event: any): string => {
   
   const toolData = event.tool_data;
   const count = toolData.results?.length || toolData.count || 0;
-  if (count === 0) return `未找到匹配的内容`;
+  if (count === 0) return `No matching content found`;
   
   // Build summary text
   let summary = '';
   const kbCount = toolData.kb_counts ? Object.keys(toolData.kb_counts).length : 0;
   if (kbCount > 0) {
-    summary = `找到 <strong>${count}</strong> 个结果，来自 <strong>${kbCount}</strong> 个文件`;
+    summary = `Found <strong>${count}</strong> results from <strong>${kbCount}</strong> files`;
   } else {
-    summary = `找到 <strong>${count}</strong> 个结果`;
+    summary = `Found <strong>${count}</strong> results`;
   }
   return summary;
 };
@@ -1344,7 +1344,7 @@ const getWebSearchResultsSummary = (toolData: any): string => {
   const count = toolData.results?.length || toolData.count || 0;
   if (count === 0) return '';
   
-  return `找到 ${count} 个网络搜索结果`;
+  return `Found ${count} web search results`;
 };
 
 // Get results count (number only) for web search summary
@@ -1361,12 +1361,12 @@ const getGrepResultsSummary = (toolData: any): string => {
   const resultCount = toolData.result_count || 0;
   
   if (totalMatches === 0) {
-    return '未找到匹配的内容';
+    return 'No matching content found';
   }
   
-  let summary = `找到 <strong>${totalMatches}</strong> 处匹配`;
+  let summary = `Found <strong>${totalMatches}</strong> matches`;
   if (totalMatches > resultCount) {
-    summary += `（显示 <strong>${resultCount}</strong> 个）`;
+    summary += ` (Showing <strong>${resultCount}</strong>)`;
   }
   
   return summary;
@@ -1404,14 +1404,14 @@ const getQueryText = (args: any): string => {
   
   // Join all queries with comma and remove duplicates
   const uniqueQueries = Array.from(new Set(queries));
-  return uniqueQueries.join('，');
+  return uniqueQueries.join(', ');
 };
 
 // Get tool title - prefer summary over description, add query for search tools
 const getToolTitle = (event: any): string => {
   if (event.pending) {
     const localizedName = getLocalizedToolName(event.tool_name);
-    return `正在调用 ${localizedName}...`;
+    return `Calling ${localizedName}...`;
   }
   
   const toolName = event.tool_name;
@@ -1425,7 +1425,7 @@ const getToolTitle = (event: any): string => {
     if (event.arguments) {
       const queryText = getQueryText(event.arguments);
       if (queryText) {
-        return `${baseTitle}：「${queryText}」`;
+        return `${baseTitle}: "${queryText}"`;
       }
     }
     return baseTitle;
@@ -1448,13 +1448,13 @@ const getToolTitle = (event: any): string => {
       const query = event.tool_data.query;
       // Handle both string and array formats
       if (Array.isArray(query)) {
-        queryText = query.filter((q: any) => q && typeof q === 'string').join('，');
+        queryText = query.filter((q: any) => q && typeof q === 'string').join(', ');
       } else if (typeof query === 'string') {
         queryText = query;
       }
     }
     if (queryText) {
-      return `${baseTitle}：「${queryText}」`;
+      return `${baseTitle}: "${queryText}"`;
     }
     return baseTitle;
   }
@@ -1480,9 +1480,9 @@ const getToolTitle = (event: any): string => {
     if (patterns.length > 0) {
       // Show up to 2 patterns in title
       const displayPatterns = patterns.slice(0, 2);
-      const patternText = displayPatterns.join('、');
+      const patternText = displayPatterns.join(', ');
       const moreText = patterns.length > 2 ? ` +${patterns.length - 2}` : '';
-      return `${baseTitle}：「${patternText}${moreText}」`;
+      return `${baseTitle}: "${patternText}${moreText}"`;
     }
     return baseTitle;
   }
@@ -1496,25 +1496,25 @@ const getToolTitle = (event: any): string => {
 const getToolDescription = (event: any): string => {
   if (event.pending) {
     const localizedName = getLocalizedToolName(event.tool_name);
-    return `正在调用 ${localizedName}...`;
+    return `Calling ${localizedName}...`;
   }
   
   const success = event.success === true;
   const toolName = event.tool_name;
   
   if (toolName === 'search_knowledge' || toolName === 'knowledge_search') {
-    return success ? '检索知识库' : '检索知识库失败';
+    return success ? 'Searching Knowledge Base' : 'Search Knowledge Base Failed';
   } else if (toolName === 'web_search') {
-    return success ? '网络搜索' : '网络搜索失败';
+    return success ? 'Web Searching' : 'Web Search Failed';
   } else if (toolName === 'get_document_info') {
-    return success ? '获取文档信息' : '获取文档信息失败';
+    return success ? 'Get Document Info' : 'Get Document Info Failed';
   } else if (toolName === 'thinking') {
-    return success ? '完成思考' : '思考失败';
+    return success ? 'Finished Thinking' : 'Thinking Failed';
   } else if (toolName === 'todo_write') {
-    return success ? '更新任务列表' : '更新任务列表失败';
+    return success ? 'Update Task List' : 'Update Task List Failed';
   } else {
     const localizedName = getLocalizedToolName(toolName);
-    return success ? `调用 ${localizedName}` : `调用 ${localizedName} 失败`;
+    return success ? `Called ${localizedName}` : `Call ${localizedName} Failed`;
   }
 };
 
@@ -1547,18 +1547,18 @@ const formatJSON = (obj: any): string => {
 };
 
 const buildManualMarkdown = (question: string, answer: string): string => {
-  const safeQuestion = question?.trim() || '（无提问内容）';
-  const safeAnswer = answer?.trim() || '（无回答内容）';
+  const safeQuestion = question?.trim() || '(No question content)';
+  const safeAnswer = answer?.trim() || '(No answer content)';
   return `${safeAnswer}`;
 };
 
 const formatManualTitle = (question: string): string => {
   if (!question) {
-    return '会话摘录';
+    return 'Session Excerpt';
   }
   const condensed = question.replace(/\s+/g, ' ').trim();
   if (!condensed) {
-    return '会话摘录';
+    return 'Session Excerpt';
   }
   return condensed.length > 40 ? `${condensed.slice(0, 40)}...` : condensed;
 };
@@ -1587,17 +1587,17 @@ const getActualContent = (answerEvent: any): string => {
 const handleCopyAnswer = async (answerEvent: any) => {
   const content = getActualContent(answerEvent);
   if (!content) {
-    MessagePlugin.warning('当前回答为空，无法复制');
+    MessagePlugin.warning('Current answer is empty, cannot copy');
     return;
   }
 
   try {
-    // 尝试使用现代 Clipboard API
+    // Try using modern Clipboard API
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(content);
-      MessagePlugin.success('已复制到剪贴板');
+      MessagePlugin.success('Copied to clipboard');
     } else {
-      // 降级到传统方式
+      // Fallback to traditional method
       const textArea = document.createElement('textarea');
       textArea.value = content;
       textArea.style.position = 'fixed';
@@ -1606,18 +1606,18 @@ const handleCopyAnswer = async (answerEvent: any) => {
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      MessagePlugin.success('已复制到剪贴板');
+      MessagePlugin.success('Copied to clipboard');
     }
   } catch (err) {
-    console.error('复制失败:', err);
-    MessagePlugin.error('复制失败，请手动复制');
+    console.error('Copy failed:', err);
+    MessagePlugin.error('Copy failed, please copy manually');
   }
 };
 
 const handleAddToKnowledge = (answerEvent: any) => {
   const content = getActualContent(answerEvent);
   if (!content) {
-    MessagePlugin.warning('当前回答为空，无法保存到知识库');
+    MessagePlugin.warning('Current answer is empty, cannot save to knowledge base');
     return;
   }
 
@@ -1632,7 +1632,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
     status: 'draft',
   });
 
-  MessagePlugin.info('已打开编辑器，请选择知识库后保存');
+  MessagePlugin.info('Editor opened, please select a knowledge base and save');
 };
 </script>
 
@@ -1647,13 +1647,13 @@ const handleAddToKnowledge = (answerEvent: any) => {
   position: relative;
 }
 
-// 时间轴连线容器
+// Timeline connector container
 .event-item {
   position: relative;
   padding-left: 32px;
   margin-bottom: 12px;
   
-  // 时间轴垂直线
+  // Timeline vertical line
   &::before {
     content: '';
     position: absolute;
@@ -1670,22 +1670,22 @@ const handleAddToKnowledge = (answerEvent: any) => {
     z-index: 0;
   }
   
-  // 第一个事件的连线从节点开始
+  // Connector for the first event starts from the node
   &:first-child::before {
     top: 14px;
   }
   
-  // 最后一个事件不显示底部连线
+  // Last event doesn't show bottom connector
   &.event-last::before {
     bottom: auto;
     height: 22px;
   }
   
-  // 时间轴节点（圆点）
+  // Timeline node (dot)
   &::after {
     content: '';
     position: absolute;
-    left: 6.25px; // 线条中心 10.75px - 圆点半径 4.5px = 6.25px (box-sizing: border-box)
+    left: 6.25px; // Line center 10.75px - dot radius 4.5px = 6.25px (box-sizing: border-box)
     top: 14px;
     width: 9px;
     height: 9px;
@@ -1695,10 +1695,10 @@ const handleAddToKnowledge = (answerEvent: any) => {
     z-index: 1;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    box-sizing: border-box; // 确保 border 包含在尺寸内
+    box-sizing: border-box; // Ensure border is included in dimensions
   }
   
-  // 不同事件类型的节点颜色
+  // Node colors for different event types
   &:has(.thinking-event)::after {
     border-color: rgba(156, 163, 175, 0.4);
     background: #f9fafb;
@@ -1739,7 +1739,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
     box-shadow: 0 1px 3px rgba(7, 192, 95, 0.2);
   }
   
-  // 普通模式下隐藏时间轴（放在最后以确保优先级）
+  // Hide timeline in normal mode (placed last to ensure priority)
   &.no-timeline {
     padding-left: 0 !important;
     
@@ -1753,7 +1753,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
       height: 0 !important;
     }
     
-    // 确保所有事件类型的时间轴都被隐藏（使用更强的选择器）
+    // Ensure timeline for all event types is hidden (using stronger selectors)
     &.event-last::before,
     &.event-last::after,
     &:first-child::before,
@@ -1851,7 +1851,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
       border-color: #07c05f;
       box-shadow: 0 1px 3px rgba(7, 192, 95, 0.06);
       
-      // 最后一个 Thinking 作为最终答案时，字体应该更大
+      // Font should be larger when the last Thinking is the final answer
       .thinking-content {
         font-size: 14px;
       }
@@ -1946,7 +1946,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
         max-height: 300px;
         width: auto;
         height: auto;
-        min-height: 100px; /* 防止流式输出时图片高度塌陷导致抖动 */
+        min-height: 100px; /* Prevent jitter caused by image height collapse during streaming output */
         border-radius: 8px;
         display: block;
         margin: 8px 0;
@@ -1954,7 +1954,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
         object-fit: contain;
         cursor: pointer;
         transition: transform 0.2s ease;
-        background-color: #f9fafb; /* 加载时的占位背景色 */
+        background-color: #f9fafb; /* Placeholder background color when loading */
         
         &:hover {
           transform: scale(1.02);
@@ -1964,7 +1964,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
   }
 }
 
-// Answer Event - 类似 thinking 但有独特样式
+// Answer Event - Similar to thinking but with unique style
 .answer-event {
   animation: fadeInUp 0.25s ease-out;
   min-height: 20px;
@@ -2080,7 +2080,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
         max-height: 300px;
         width: auto;
         height: auto;
-        min-height: 100px; /* 防止流式输出时图片高度塌陷导致抖动 */
+        min-height: 100px; /* Prevent jitter caused by image height collapse during streaming output */
         border-radius: 8px;
         display: block;
         margin: 8px 0;
@@ -2088,7 +2088,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
         object-fit: contain;
         cursor: pointer;
         transition: transform 0.2s ease;
-        background-color: #f9fafb; /* 加载时的占位背景色 */
+        background-color: #f9fafb; /* Placeholder background color when loading */
         
         &:hover {
           transform: scale(1.02);
@@ -2116,7 +2116,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
       color: #666;
       transition: all 0.2s ease;
       
-      // 确保按钮内容区域正确显示
+      // Ensure button content area displays correctly
       .t-button__content {
         display: inline-flex !important;
         align-items: center;
@@ -2124,7 +2124,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
         gap: 0;
       }
       
-      // t-button__text 包含图标，需要显示但只显示图标
+      // t-button__text contains icon, should display but only show icon
       .t-button__text {
         display: inline-flex !important;
         align-items: center;
@@ -2132,7 +2132,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
         gap: 0;
       }
       
-      // 确保图标显示
+      // Ensure icon displays
       .t-icon {
         display: inline-flex !important;
         visibility: visible !important;
@@ -2146,19 +2146,19 @@ const handleAddToKnowledge = (answerEvent: any) => {
         color: #666;
       }
       
-      // 确保 SVG 图标也显示
+      // Ensure SVG icon also displays
       .t-icon svg {
         display: block !important;
         width: 16px;
         height: 16px;
       }
       
-      // 隐藏文字节点（但不是图标）
+      // Hide text nodes (but not icons)
       .t-button__text > :not(.t-icon) {
         display: none;
       }
       
-      // Hover 效果
+      // Hover effect
       &:hover:not(:disabled) {
         background: rgba(7, 192, 95, 0.08);
         border-color: rgba(7, 192, 95, 0.3);
@@ -2169,7 +2169,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
         }
       }
       
-      // Active 效果
+      // Active effect
       &:active:not(:disabled) {
         background: rgba(7, 192, 95, 0.12);
         border-color: rgba(7, 192, 95, 0.4);
@@ -2380,7 +2380,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
   }
 }
 
-// Loading 动画关键帧
+// Loading animation keyframes
 @keyframes dotBounce {
   0%, 80%, 100% {
     transform: scale(1);
@@ -2953,7 +2953,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
     padding-left: 0;
   }
   
-  // 方案1: 三个跳动的圆点
+  // Option 1: Three jumping dots
   .loading-dots {
     display: flex;
     align-items: center;
@@ -2980,7 +2980,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
     }
   }
   
-  // 打字机效果
+  // Typewriter effect
   .loading-typing {
     display: flex;
     align-items: center;
@@ -3007,7 +3007,7 @@ const handleAddToKnowledge = (answerEvent: any) => {
     }
   }
   
-  // 方案5: 波浪线
+  // Option 5: Wave line
   .loading-wave {
     display: flex;
     align-items: center;

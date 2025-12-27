@@ -166,13 +166,13 @@ const handleToggleEnabled = async (service: MCPService) => {
 const handleTest = async (service: MCPService) => {
   if (!service || !service.id) return
   
-  testingServiceName.value = service.name || 'MCP 服务'
+  testingServiceName.value = service.name || 'MCP Service'
   testing.value = true
   
-  // 显示测试开始提示
+  // Show test start hint
   MessagePlugin.info({
     content: t('mcpSettings.toasts.testing', { name: service.name }),
-    duration: 0, // 不自动关闭
+    duration: 0, // Don't close automatically
     closeBtn: false
   })
   
@@ -181,12 +181,12 @@ const handleTest = async (service: MCPService) => {
     
     console.log('Test result received:', result)
     
-    // 关闭所有消息提示
+    // Close all message hints
     MessagePlugin.closeAll()
     
-    // 检查结果是否存在
+    // Check if result exists
     if (!result) {
-      // 即使没有结果，也显示错误对话框
+      // Even if there is no result, show the error dialog
       testResult.value = {
         success: false,
         message: t('mcpSettings.toasts.noResponse')
@@ -195,28 +195,28 @@ const handleTest = async (service: MCPService) => {
       return
     }
     
-    // 设置测试结果
+    // Set test result
     testResult.value = result
     
-    // 显示详细结果对话框
+    // Show detailed result dialog
     console.log('Opening test dialog, result:', testResult.value)
     testDialogVisible.value = true
   } catch (error: any) {
-    // 关闭所有消息提示
+    // Close all message hints
     MessagePlugin.closeAll()
     
-    // 显示错误信息
+    // Show error message
     const errorMessage = error?.response?.data?.error?.message || error?.message || t('mcpSettings.toasts.testFailed')
     console.error('Failed to test MCP service:', error)
     
-    // 即使出错也显示结果对话框，显示错误信息
+    // Show result dialog even on error, to display the error message
     testResult.value = {
       success: false,
       message: errorMessage
     }
     testDialogVisible.value = true
   } finally {
-    // 确保关闭 loading
+    // Ensure loading is stopped
     testing.value = false
   }
 }

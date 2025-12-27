@@ -6,7 +6,7 @@
             <input type="file" style="display: none" ref="uploadInput" accept=".pdf,.docx,.doc,.txt,.md,.jpg,.jpeg,.png,.csv,.xls,.xlsx" />
             <UploadMask></UploadMask>
         </div>
-        <!-- 全局设置模态框，供所有 platform 子路由使用 -->
+        <!-- Global settings modal, used by all platform sub-routes -->
         <Settings />
     </div>
 </template>
@@ -27,12 +27,12 @@ let ismask = ref(false)
 let uploadInput = ref();
 const { t } = useI18n();
 
-// 获取当前知识库ID
+// Get current knowledge base ID
 const getCurrentKbId = (): string | null => {
     return (route.params as any)?.kbId as string || null
 }
 
-// 检查知识库初始化状态
+// Check knowledge base initialization status
 const checkKnowledgeBaseInitialization = async (): Promise<boolean> => {
     const currentKbId = getCurrentKbId();
     
@@ -57,7 +57,7 @@ const checkKnowledgeBaseInitialization = async (): Promise<boolean> => {
 }
 
 
-// 全局拖拽事件处理
+// Global drag event handlers
 const handleGlobalDragEnter = (event: DragEvent) => {
     event.preventDefault();
     if (event.dataTransfer) {
@@ -100,14 +100,14 @@ const handleGlobalDrop = async (event: DragEvent) => {
     }
 }
 
-// 组件挂载时添加全局事件监听器
+// Add global event listeners when component matches
 onMounted(() => {
     document.addEventListener('dragenter', handleGlobalDragEnter, true);
     document.addEventListener('dragover', handleGlobalDragOver, true);
     document.addEventListener('drop', handleGlobalDrop, true);
 });
 
-// 组件卸载时移除全局事件监听器
+// Remove global event listeners when component unmounts
 onUnmounted(() => {
     document.removeEventListener('dragenter', handleGlobalDragEnter, true);
     document.removeEventListener('dragover', handleGlobalDragOver, true);

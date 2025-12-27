@@ -6,7 +6,7 @@
     </div>
 
     <div class="settings-group">
-      <!-- LLM 大语言模型 -->
+      <!-- LLM Large Language Model -->
       <div class="setting-row">
         <div class="setting-info">
           <label>{{ $t('knowledgeEditor.models.llmLabel') }} <span class="required">*</span></label>
@@ -25,7 +25,7 @@
         </div>
       </div>
 
-      <!-- Embedding 嵌入模型 -->
+      <!-- Embedding Model -->
       <div class="setting-row">
         <div class="setting-info">
           <label>{{ $t('knowledgeEditor.models.embeddingLabel') }} <span class="required">*</span></label>
@@ -82,11 +82,11 @@ const emit = defineEmits<{
 const uiStore = useUIStore()
 const { t } = useI18n()
 
-// 引用各个模型选择器
+// References for each model selector
 const llmSelectorRef = ref<InstanceType<typeof ModelSelector>>()
 const embeddingSelectorRef = ref<InstanceType<typeof ModelSelector>>()
 
-// 处理LLM模型变化
+// Handle LLM model change
 const handleLLMChange = (modelId: string) => {
   emit('update:config', {
     ...props.config,
@@ -94,7 +94,7 @@ const handleLLMChange = (modelId: string) => {
   })
 }
 
-// 处理Embedding模型变化
+// Handle Embedding model change
 const handleEmbeddingChange = (modelId: string) => {
   emit('update:config', {
     ...props.config,
@@ -102,13 +102,13 @@ const handleEmbeddingChange = (modelId: string) => {
   })
 }
 
-// 处理添加模型按钮点击
+// Handle add model button click
 const handleAddModel = (subSection: string) => {
-  // 打开全局设置对话框，并导航到对应的模型子页面
+  // Open global settings dialog and navigate to corresponding model sub-page
   uiStore.openSettings('models', subSection)
 }
 
-// 由于使用了 allModels prop，不再需要单独刷新各个选择器
+// Since allModels prop is used, no need to refresh selectors individually
 </script>
 
 <style lang="less" scoped>

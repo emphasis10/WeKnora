@@ -1,6 +1,6 @@
 <template>
   <div class="kb-list-container">
-    <!-- 头部 -->
+    <!-- Header -->
     <div class="header">
       <div class="header-title">
         <h2>{{ $t('knowledgeBase.title') }}</h2>
@@ -9,13 +9,13 @@
     </div>
     <div class="header-divider"></div>
     
-    <!-- 未初始化知识库提示 -->
+    <!-- Uninitialized Knowledge Base Tip -->
     <div v-if="hasUninitializedKbs" class="warning-banner">
       <t-icon name="info-circle" size="16px" />
       <span>{{ $t('knowledgeList.uninitializedBanner') }}</span>
     </div>
 
-    <!-- 上传进度提示 -->
+    <!-- Upload Progress Tip -->
     <div v-if="uploadSummaries.length" class="upload-progress-panel">
       <div 
         v-for="summary in uploadSummaries" 
@@ -57,7 +57,7 @@
       </div>
     </div>
 
-    <!-- 卡片网格 -->
+    <!-- Card Grid -->
     <div v-if="kbs.length > 0" class="kb-card-wrap">
       <div 
         v-for="(kb, index) in kbs" 
@@ -72,7 +72,7 @@
         :ref="el => { if (highlightedKbId !== null && highlightedKbId === kb.id && el) highlightedCardRef = el as HTMLElement }"
         @click="handleCardClick(kb)"
       >
-        <!-- 卡片头部 -->
+        <!-- Card Header -->
         <div class="card-header">
           <span class="card-title" :title="kb.name">{{ kb.name }}</span>
           <t-popup 
@@ -106,14 +106,14 @@
           </t-popup>
         </div>
 
-        <!-- 卡片内容 -->
+        <!-- Card Content -->
         <div class="card-content">
           <div class="card-description">
             {{ kb.description || $t('knowledgeBase.noDescription') }}
           </div>
         </div>
 
-        <!-- 卡片底部 -->
+        <!-- Card Footer -->
         <div class="card-bottom">
           <div class="bottom-left">
             <div class="type-badge" :class="{ 'document': (kb.type || 'document') === 'document', 'faq': kb.type === 'faq' }">
@@ -155,7 +155,7 @@
       </div>
     </div>
 
-    <!-- 空状态 -->
+    <!-- Empty State -->
     <div v-else-if="!loading" class="empty-state">
       <img class="empty-img" src="@/assets/img/upload.svg" alt="">
       <span class="empty-txt">{{ $t('knowledgeList.empty.title') }}</span>
@@ -163,7 +163,7 @@
     </div>
 
 
-    <!-- 删除确认对话框 -->
+    <!-- Delete Confirmation Dialog -->
     <t-dialog 
       v-model:visible="deleteVisible" 
       dialogClassName="del-knowledge-dialog" 
@@ -186,7 +186,7 @@
       </div>
     </t-dialog>
 
-    <!-- 知识库编辑器（创建/编辑统一组件） -->
+    <!-- Knowledge Base Editor (Unified component for create/edit) -->
     <KnowledgeBaseEditorModal 
       :visible="uiStore.showKBEditorModal"
       :mode="uiStore.kbEditorMode"
@@ -228,8 +228,8 @@ interface KB {
   question_generation_config?: { enabled?: boolean; question_count?: number };
   knowledge_count?: number;
   chunk_count?: number;
-  isProcessing?: boolean; // 是否有正在处理的导入任务
-  processing_count?: number; // 正在处理的文档数量（仅文档类型）
+  isProcessing?: boolean; // Whether there are import tasks being processed
+  processing_count?: number; // Number of documents being processed (document type only)
 }
 
 const kbs = ref<KB[]>([])
@@ -266,8 +266,8 @@ const fetchList = () => {
   loading.value = true
   return listKnowledgeBases().then((res: any) => {
     const data = res.data || []
-    // 格式化时间，并初始化 showMore 状态
-    // is_processing 字段由后端返回
+    // Format time and initialize showMore state
+    // is_processing field is returned by backend
     kbs.value = data.map((kb: any) => ({
       ...kb,
       updated_at: kb.updated_at ? formatStringDate(new Date(kb.updated_at)) : '',
@@ -280,11 +280,11 @@ const fetchList = () => {
 
 onMounted(() => {
   fetchList().then(() => {
-    // 检查路由参数中是否有需要高亮的知识库ID
+    // Check if there is a knowledge base ID that needs to be highlighted in route parameters
     const highlightKbId = route.query.highlightKbId as string
     if (highlightKbId) {
       triggerHighlightFlash(highlightKbId)
-      // 清除 URL 中的查询参数
+      // Clear query parameters in URL
       router.replace({ query: {} })
     }
   })
@@ -309,7 +309,7 @@ onUnmounted(() => {
   }
 })
 
-// 监听路由变化，处理从其他页面跳转过来的高亮需求
+// Listen to route changes, handle highlight requests from other pages
 watch(() => route.query.highlightKbId, (newKbId) => {
   if (newKbId && typeof newKbId === 'string' && kbs.value.length > 0) {
     triggerHighlightFlash(newKbId)
@@ -318,26 +318,26 @@ watch(() => route.query.highlightKbId, (newKbId) => {
 })
 
 const openMore = (index: number) => {
-  // 只记录当前打开的索引，用于显示激活样式
-  // 弹窗的开关由 v-model 自动管理
+  // Only record current opened index for active style
+  // Modal open/close is automatically managed by v-model
   currentMoreIndex.value = index
 }
 
 const onVisibleChange = (visible: boolean) => {
-  // 弹窗关闭时重置索引
+  // Reset index when popup closes
   if (!visible) {
     currentMoreIndex.value = -1
   }
 }
 
 const handleSettings = (kb: KB) => {
-  // 手动关闭弹窗
+  // Manually close popup
   kb.showMore = false
   goSettings(kb.id)
 }
 
 const handleDelete = (kb: KB) => {
-  // 手动关闭弹窗
+  // Manually close popup
   kb.showMore = false
   deletingKb.value = kb
   deleteVisible.value = true
@@ -365,7 +365,7 @@ const isInitialized = (kb: KB) => {
             kb.summary_model_id && kb.summary_model_id !== '')
 }
 
-// 计算是否有未初始化的知识库
+// Check if there are uninitialized knowledge bases
 const hasUninitializedKbs = computed(() => {
   return kbs.value.some(kb => !isInitialized(kb))
 })
@@ -478,35 +478,35 @@ const goDetail = (id: string) => {
 }
 
 const goSettings = (id: string) => {
-  // 使用模态框打开设置
+  // Open settings using modal
   uiStore.openKBSettings(id)
 }
 
-// 知识库编辑器成功回调（创建或编辑成功）
+// Knowledge base editor success callback (Create or Edit success)
 const handleKBEditorSuccess = (kbId: string) => {
   console.log('[KnowledgeBaseList] knowledge operation success:', kbId)
   fetchList().then(() => {
-    // 如果是从路由参数中获取的高亮ID，触发闪烁效果
+    // If highlight KB ID is from route params, trigger flash effect
     if (route.query.highlightKbId === kbId) {
       triggerHighlightFlash(kbId)
-      // 清除 URL 中的查询参数
+      // Clear query parameters in URL
       router.replace({ query: {} })
     }
   })
 }
 
-// 触发高亮闪烁效果
+// Trigger highlight flash effect
 const triggerHighlightFlash = (kbId: string) => {
   highlightedKbId.value = kbId
   nextTick(() => {
     if (highlightedCardRef.value) {
-      // 滚动到高亮的卡片
+      // Scroll to highlighted card
       highlightedCardRef.value.scrollIntoView({ 
         behavior: 'smooth', 
         block: 'center' 
       })
     }
-    // 3秒后清除高亮
+    // Clear highlight after 3 seconds
     setTimeout(() => {
       highlightedKbId.value = null
     }, 3000)
@@ -727,7 +727,7 @@ const handleUploadFinishedEvent = (event: Event) => {
     opacity: 0.9;
   }
 
-  // 文档类型样式
+  // Document type style
   &.kb-type-document {
     background: linear-gradient(135deg, #ffffff 0%, #f8fcfa 100%);
     border-color: #e8f5ed;
@@ -737,7 +737,7 @@ const handleUploadFinishedEvent = (event: Event) => {
       background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
     }
     
-    // 右上角装饰
+    // Top right decoration
     &::after {
       content: '';
       position: absolute;
@@ -752,7 +752,7 @@ const handleUploadFinishedEvent = (event: Event) => {
     }
   }
 
-  // 问答类型样式
+  // FAQ type style
   &.kb-type-faq {
     background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
     border-color: #e6f0ff;
@@ -762,7 +762,7 @@ const handleUploadFinishedEvent = (event: Event) => {
       background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
     }
     
-    // 右上角装饰
+    // Top right decoration
     &::after {
       content: '';
       position: absolute;
@@ -777,7 +777,7 @@ const handleUploadFinishedEvent = (event: Event) => {
     }
   }
 
-  // 确保内容在装饰之上
+  // Ensure content is above decoration
   .card-header,
   .card-content,
   .card-bottom {
@@ -1025,7 +1025,7 @@ const handleUploadFinishedEvent = (event: Event) => {
   }
 }
 
-// 响应式布局
+// Responsive layout
 @media (min-width: 900px) {
   .kb-card-wrap {
     grid-template-columns: repeat(2, 1fr);
@@ -1044,7 +1044,7 @@ const handleUploadFinishedEvent = (event: Event) => {
   }
 }
 
-// 删除确认对话框样式
+// Delete confirmation dialog style
 :deep(.del-knowledge-dialog) {
   padding: 0px !important;
   border-radius: 6px !important;
@@ -1130,7 +1130,7 @@ const handleUploadFinishedEvent = (event: Event) => {
 </style>
 
 <style lang="less">
-// 更多操作弹窗样式
+// More actions popup style
 .card-more-popup {
   z-index: 99 !important;
 
@@ -1191,7 +1191,7 @@ const handleUploadFinishedEvent = (event: Event) => {
   }
 }
 
-// 创建对话框样式优化
+// Create dialog style optimization
 .create-kb-dialog {
   .t-form-item__label {
     font-family: "PingFang SC";

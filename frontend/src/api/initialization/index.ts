@@ -1,6 +1,6 @@
 import { get, post, put } from '../../utils/request';
 
-// 初始化配置数据类型
+// Initialization configuration data types
 export interface InitializationConfig {
     llm: {
         source: string;
@@ -13,7 +13,7 @@ export interface InitializationConfig {
         modelName: string;
         baseUrl?: string;
         apiKey?: string;
-        dimension?: number; // 添加embedding维度字段
+        dimension?: number; // Add embedding dimension field
     };
     rerank: {
         modelName: string;
@@ -59,7 +59,7 @@ export interface InitializationConfig {
     }
 }
 
-// 下载任务状态类型
+// Download task status type
 export interface DownloadTask {
     id: string;
     modelName: string;
@@ -70,7 +70,7 @@ export interface DownloadTask {
     endTime?: string;
 }
 
-// 简化版知识库配置更新接口（只传模型ID）
+// Simplified knowledge base configuration update interface (only passes model IDs)
 export interface KBModelConfigRequest {
     llmModelId: string
     embeddingModelId: string
@@ -115,36 +115,36 @@ export interface KBModelConfigRequest {
 
 export function updateKBConfig(kbId: string, config: KBModelConfigRequest): Promise<any> {
     return new Promise((resolve, reject) => {
-        console.log('开始知识库配置更新（简化版）...', kbId, config);
+        console.log('Starting knowledge base configuration update (simplified version)...', kbId, config);
         put(`/api/v1/initialization/config/${kbId}`, config)
             .then((response: any) => {
-                console.log('知识库配置更新完成', response);
+                console.log('Knowledge base configuration update completed', response);
                 resolve(response);
             })
             .catch((error: any) => {
-                console.error('知识库配置更新失败:', error);
+                console.error('Knowledge base configuration update failed:', error);
                 reject(error.error || error);
             });
     });
 }
 
-// 根据知识库ID执行配置更新（旧版，保留兼容性）
+// Perform configuration update based on knowledge base ID (old version, kept for compatibility)
 export function initializeSystemByKB(kbId: string, config: InitializationConfig): Promise<any> {
     return new Promise((resolve, reject) => {
-        console.log('开始知识库配置更新...', kbId, config);
+        console.log('Starting knowledge base configuration update...', kbId, config);
         post(`/api/v1/initialization/initialize/${kbId}`, config)
             .then((response: any) => {
-                console.log('知识库配置更新完成', response);
+                console.log('Knowledge base configuration update completed', response);
                 resolve(response);
             })
             .catch((error: any) => {
-                console.error('知识库配置更新失败:', error);
+                console.error('Knowledge base configuration update failed:', error);
                 reject(error.error || error);
             });
     });
 }
 
-// 检查Ollama服务状态
+// Check Ollama service status
 export function checkOllamaStatus(): Promise<{ available: boolean; version?: string; error?: string; baseUrl?: string }> {
     return new Promise((resolve, reject) => {
         get('/api/v1/initialization/ollama/status')
@@ -152,13 +152,13 @@ export function checkOllamaStatus(): Promise<{ available: boolean; version?: str
                 resolve(response.data || { available: false });
             })
             .catch((error: any) => {
-                console.error('检查Ollama状态失败:', error);
-                resolve({ available: false, error: error.message || '检查失败' });
+                console.error('Failed to check Ollama status:', error);
+                resolve({ available: false, error: error.message || 'Check failed' });
             });
     });
 }
 
-// Ollama 模型详细信息接口
+// Ollama model detailed information interface
 export interface OllamaModelInfo {
     name: string;
     size: number;
@@ -166,7 +166,7 @@ export interface OllamaModelInfo {
     modified_at: string;
 }
 
-// 列出已安装的 Ollama 模型（详细信息）
+// List installed Ollama models (detailed info)
 export function listOllamaModels(): Promise<OllamaModelInfo[]> {
     return new Promise((resolve, reject) => {
         get('/api/v1/initialization/ollama/models')
@@ -174,13 +174,13 @@ export function listOllamaModels(): Promise<OllamaModelInfo[]> {
                 resolve((response.data && response.data.models) || []);
             })
             .catch((error: any) => {
-                console.error('获取 Ollama 模型列表失败:', error);
+                console.error('Failed to get Ollama model list:', error);
                 resolve([]);
             });
     });
 }
 
-// 检查Ollama模型状态
+// Check Ollama model status
 export function checkOllamaModels(models: string[]): Promise<{ models: Record<string, boolean> }> {
     return new Promise((resolve, reject) => {
         post('/api/v1/initialization/ollama/models/check', { models })
@@ -188,13 +188,13 @@ export function checkOllamaModels(models: string[]): Promise<{ models: Record<st
                 resolve(response.data || { models: {} });
             })
             .catch((error: any) => {
-                console.error('检查Ollama模型状态失败:', error);
+                console.error('Failed to check Ollama model status:', error);
                 reject(error);
             });
     });
 }
 
-// 启动Ollama模型下载（异步）
+// Start Ollama model download (async)
 export function downloadOllamaModel(modelName: string): Promise<{ taskId: string; modelName: string; status: string; progress: number }> {
     return new Promise((resolve, reject) => {
         post('/api/v1/initialization/ollama/models/download', { modelName })
@@ -202,13 +202,13 @@ export function downloadOllamaModel(modelName: string): Promise<{ taskId: string
                 resolve(response.data || { taskId: '', modelName, status: 'failed', progress: 0 });
             })
             .catch((error: any) => {
-                console.error('启动Ollama模型下载失败:', error);
+                console.error('Failed to start Ollama model download:', error);
                 reject(error);
             });
     });
 }
 
-// 查询下载进度
+// Query download progress
 export function getDownloadProgress(taskId: string): Promise<DownloadTask> {
     return new Promise((resolve, reject) => {
         get(`/api/v1/initialization/ollama/download/progress/${taskId}`)
@@ -216,13 +216,13 @@ export function getDownloadProgress(taskId: string): Promise<DownloadTask> {
                 resolve(response.data);
             })
             .catch((error: any) => {
-                console.error('查询下载进度失败:', error);
+                console.error('Failed to query download progress:', error);
                 reject(error);
             });
     });
 }
 
-// 获取所有下载任务
+// Get all download tasks
 export function listDownloadTasks(): Promise<DownloadTask[]> {
     return new Promise((resolve, reject) => {
         get('/api/v1/initialization/ollama/download/tasks')
@@ -230,7 +230,7 @@ export function listDownloadTasks(): Promise<DownloadTask[]> {
                 resolve(response.data || []);
             })
             .catch((error: any) => {
-                console.error('获取下载任务列表失败:', error);
+                console.error('Failed to get download task list:', error);
                 reject(error);
             });
     });
@@ -244,13 +244,13 @@ export function getCurrentConfigByKB(kbId: string): Promise<InitializationConfig
                 resolve(response.data || {});
             })
             .catch((error: any) => {
-                console.error('获取知识库配置失败:', error);
+                console.error('Failed to get knowledge base configuration:', error);
                 reject(error);
             });
     });
 }
 
-// 检查远程API模型
+// Check remote API models
 export function checkRemoteModel(modelConfig: {
     modelName: string;
     baseUrl: string;
@@ -265,13 +265,13 @@ export function checkRemoteModel(modelConfig: {
                 resolve(response.data || {});
             })
             .catch((error: any) => {
-                console.error('检查远程模型失败:', error);
+                console.error('Failed to check remote model:', error);
                 reject(error);
             });
     });
 }
 
-// 测试 Embedding 模型（本地/远程）是否可用
+// Test if Embedding model (local/remote) is available
 export function testEmbeddingModel(modelConfig: {
     source: 'local' | 'remote';
     modelName: string;
@@ -285,7 +285,7 @@ export function testEmbeddingModel(modelConfig: {
                 resolve(response.data || {});
             })
             .catch((error: any) => {
-                console.error('测试Embedding模型失败:', error);
+                console.error('Failed to test Embedding model:', error);
                 reject(error);
             });
     });
@@ -306,7 +306,7 @@ export function checkRerankModel(modelConfig: {
                 resolve(response.data || {});
             })
             .catch((error: any) => {
-                console.error('检查Rerank模型失败:', error);
+                console.error('Failed to check Rerank model:', error);
                 reject(error);
             });
     });
@@ -318,7 +318,7 @@ export function testMultimodalFunction(testData: {
     vlm_base_url: string;
     vlm_api_key?: string;
     vlm_interface_type?: string;
-    storage_type?: 'cos'|'minio';
+    storage_type?: 'cos' | 'minio';
     // COS optional fields (required only when storage_type === 'cos')
     cos_secret_id?: string;
     cos_secret_key?: string;
@@ -369,14 +369,14 @@ export function testMultimodalFunction(testData: {
         formData.append('chunk_overlap', testData.chunk_overlap.toString());
         formData.append('separators', JSON.stringify(testData.separators));
 
-        // 获取鉴权Token
+        // Get authentication token
         const token = localStorage.getItem('weknora_token');
         const headers: Record<string, string> = {};
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        // 添加跨租户访问请求头（如果选择了其他租户）
+        // Add cross-tenant access request header (if another tenant is selected)
         const selectedTenantId = localStorage.getItem('weknora_selected_tenant_id');
         const defaultTenantId = localStorage.getItem('weknora_tenant');
         if (selectedTenantId) {
@@ -397,22 +397,22 @@ export function testMultimodalFunction(testData: {
             headers,
             body: formData
         })
-        .then(response => response.json())
-        .then((data: any) => {
-            if (data.success) {
-                resolve(data.data || {});
-            } else {
-                resolve({ success: false, message: data.message || '测试失败' });
-            }
-        })
-        .catch((error: any) => {
-            console.error('多模态测试失败:', error);
-            reject(error);
-        });
+            .then(response => response.json())
+            .then((data: any) => {
+                if (data.success) {
+                    resolve(data.data || {});
+                } else {
+                    resolve({ success: false, message: data.message || 'Test failed' });
+                }
+            })
+            .catch((error: any) => {
+                console.error('Multimodal test failed:', error);
+                reject(error);
+            });
     });
 }
 
-// 文本内容关系提取接口
+// Text content relation extraction interface
 export interface TextRelationExtractionRequest {
     text: string;
     tags: string[];
@@ -442,7 +442,7 @@ export interface TextRelationExtractionResponse {
     relations: Relation[];
 }
 
-// 文本内容关系提取
+// Text content relation extraction
 export function extractTextRelations(request: TextRelationExtractionRequest): Promise<TextRelationExtractionResponse> {
     return new Promise((resolve, reject) => {
         post('/api/v1/initialization/extract/text-relation', request, { timeout: 60000 })
@@ -450,7 +450,7 @@ export function extractTextRelations(request: TextRelationExtractionRequest): Pr
                 resolve(response.data || { nodes: [], relations: [] });
             })
             .catch((error: any) => {
-                console.error('文本内容关系提取失败:', error);
+                console.error('Text content relation extraction failed:', error);
                 reject(error);
             });
     });
@@ -465,7 +465,7 @@ export interface FabriTextResponse {
     text: string;
 }
 
-// 文本内容生成
+// Text content generation
 export function fabriText(request: FabriTextRequest): Promise<FabriTextResponse> {
     return new Promise((resolve, reject) => {
         post('/api/v1/initialization/extract/fabri-text', request)
@@ -473,21 +473,21 @@ export function fabriText(request: FabriTextRequest): Promise<FabriTextResponse>
                 resolve(response.data || { text: '' });
             })
             .catch((error: any) => {
-                console.error('文本内容生成失败:', error);
+                console.error('Text content generation failed:', error);
                 reject(error);
             });
     });
 }
 
 export interface FabriTagRequest {
-    llm_config: LLMConfig; 
+    llm_config: LLMConfig;
 }
 
 export interface FabriTagResponse {
     tags: string[];
 }
 
-// 文本内容生成
+// Tag generation
 export function fabriTag(request: FabriTagRequest): Promise<FabriTagResponse> {
     return new Promise((resolve, reject) => {
         post('/api/v1/initialization/extract/fabri-tag', request)
@@ -495,7 +495,7 @@ export function fabriTag(request: FabriTagRequest): Promise<FabriTagResponse> {
                 resolve(response.data || { tags: [] as string[] });
             })
             .catch((error: any) => {
-                console.error('标签生成失败:', error);
+                console.error('Tag generation failed:', error);
                 reject(error);
             });
     });

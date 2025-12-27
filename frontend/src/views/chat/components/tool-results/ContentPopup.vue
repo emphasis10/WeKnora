@@ -27,7 +27,7 @@ interface Props {
   content?: string;
   chunkId?: string;
   knowledgeId?: string;
-  isHtml?: boolean; // 是否以 HTML 格式显示内容
+  isHtml?: boolean; // Whether to display content in HTML format
 }
 
 const props = defineProps<Props>();
@@ -36,7 +36,7 @@ const hasInfo = computed(() => {
   return !!(props.chunkId || props.knowledgeId);
 });
 
-// 处理 HTML 内容
+// Handle HTML content
 const processedContent = computed(() => {
   if (!props.content) return '';
   if (props.isHtml) {

@@ -12,7 +12,7 @@
     </div>
 
     <div v-else class="empty-state">
-      未找到匹配的内容
+      No matching content found
     </div>
   </div>
 </template>

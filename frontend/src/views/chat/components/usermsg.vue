@@ -1,6 +1,6 @@
 <template>
     <div class="user_msg_container">
-        <!-- 显示@的知识库和文件 -->
+        <!-- Display @ mentioned knowledge bases and files -->
         <div v-if="mentioned_items && mentioned_items.length > 0" class="mentioned_items">
             <span 
                 v-for="item in mentioned_items" 
@@ -26,12 +26,12 @@
 import { defineProps } from "vue";
 
 const props = defineProps({
-    // 必填项
+    // Required fields
     content: {
         type: String,
         required: false
     },
-    // @提及的知识库和文件
+    // @ mentioned knowledge bases and files
     mentioned_items: {
         type: Array,
         required: false,

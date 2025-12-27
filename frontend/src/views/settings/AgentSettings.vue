@@ -7,10 +7,10 @@
       </div>
 
       <t-tabs v-model="activeTab" class="conversation-tabs">
-      <!-- Agent 模式设置 Tab -->
+      <!-- Agent Mode Settings Tab -->
       <t-tab-panel value="agent" :label="$t('conversationSettings.agentMode')">
         <div class="tab-content">
-          <!-- Agent 状态显示 -->
+          <!-- Agent Status Display -->
           <div class="agent-status-row">
         <div class="status-label">
           <label>{{ $t('agentSettings.status.label') }}</label>
@@ -44,7 +44,7 @@
         </div>
       </div>
 
-          <!-- 模型推荐提示 -->
+          <!-- Model Recommendation Hint -->
           <div class="model-recommendation-box">
             <div class="recommendation-header">
               <t-icon name="info-circle" class="recommendation-icon" />
@@ -57,7 +57,7 @@
 
           <div class="settings-group">
 
-      <!-- 最大迭代次数 -->
+      <!-- Max Iterations -->
       <div class="setting-row">
         <div class="setting-info">
           <label>{{ $t('agentSettings.maxIterations.label') }}</label>
@@ -79,7 +79,7 @@
         </div>
       </div>
 
-      <!-- 温度参数 -->
+      <!-- Temperature Parameter -->
       <div class="setting-row">
         <div class="setting-info">
           <label>{{ $t('agentSettings.temperature.label') }}</label>
@@ -101,7 +101,7 @@
         </div>
       </div>
 
-      <!-- 允许的工具 -->
+      <!-- Allowed Tools -->
       <div class="setting-row vertical">
         <div class="setting-info">
           <label>{{ $t('agentSettings.allowedTools.label') }}</label>
@@ -129,7 +129,7 @@
         </div>
       </div>
 
-      <!-- 系统 Prompt -->
+      <!-- System Prompt -->
       <div class="setting-row vertical">
         <div class="setting-info">
           <label>{{ $t('agentSettings.systemPrompt.label') }}</label>
@@ -211,7 +211,7 @@
               </t-tab-panel>
             </t-tabs>
           </div>
-          <!-- 占位符提示下拉框 -->
+          <!-- Placeholder Prompt Popup -->
           <teleport to="body">
             <div
               v-if="localUseCustomSystemPrompt && showPlaceholderPopup && filteredPlaceholders.length > 0"
@@ -241,11 +241,11 @@
       </div>
       </t-tab-panel>
 
-      <!-- 普通模式设置 Tab -->
+      <!-- Normal Mode Settings Tab -->
       <t-tab-panel value="normal" :label="$t('conversationSettings.normalMode')">
         <div class="tab-content">
           <div class="settings-group">
-            <!-- System Prompt（普通模式，自定义开关） -->
+            <!-- System Prompt (Normal Mode, Custom Switch) -->
             <div class="setting-row vertical">
               <div class="setting-info">
                 <label>{{ $t('conversationSettings.systemPrompt.label') }}</label>
@@ -278,7 +278,7 @@
               </div>
             </div>
 
-            <!-- Context Template（普通模式，自定义开关） -->
+            <!-- Context Template (Normal Mode, Custom Switch) -->
             <div class="setting-row vertical">
               <div class="setting-info">
                 <label>{{ $t('conversationSettings.contextTemplate.label') }}</label>
@@ -323,7 +323,7 @@
       </div>
 
       <div class="settings-group">
-        <!-- 默认大模型（对话/总结模型） -->
+        <!-- Default LLM (Chat/Summary Model) -->
         <div class="setting-row">
           <div class="setting-info">
             <label>{{ $t('conversationSettings.models.chatGroupLabel') }}</label>
@@ -355,7 +355,7 @@
           </div>
         </div>
 
-        <!-- 默认 ReRank 模型 -->
+        <!-- Default ReRank Model -->
         <div class="setting-row">
           <div class="setting-info">
             <label>{{ $t('conversationSettings.models.rerankGroupLabel') }}</label>
@@ -518,7 +518,7 @@
             />
           </div>
         </div>
-        <!-- 开启问题改写 -->
+        <!-- Enable Query Rewrite -->
         <div class="setting-row">
           <div class="setting-info">
             <label>{{ $t('conversationSettings.enableRewrite.label') }}</label>
@@ -533,7 +533,7 @@
           </div>
         </div>
 
-        <!-- 改写 Prompt：仅在开启改写时展示 -->
+        <!-- Rewrite Prompt: Only displayed when rewrite is enabled -->
         <div v-if="localEnableRewrite" class="setting-row vertical">
           <div class="setting-info">
             <label>{{ $t('conversationSettings.rewritePrompt.system') }}</label>
@@ -562,7 +562,7 @@
           </div>
         </div>
 
-        <!-- 兜底策略 -->
+        <!-- Fallback Strategy -->
         <div class="setting-row">
           <div class="setting-info">
             <label>{{ $t('conversationSettings.fallbackStrategy.label') }}</label>
@@ -576,7 +576,7 @@
           </div>
         </div>
 
-        <!-- 固定兜底回复：仅在选择固定回复时展示 -->
+        <!-- Fixed Fallback Response: Only displayed when fixed response is selected -->
         <div v-if="localFallbackStrategy === 'fixed'" class="setting-row vertical">
           <div class="setting-info">
             <label>{{ $t('conversationSettings.fallbackResponse.label') }}</label>
@@ -591,7 +591,7 @@
           </div>
         </div>
 
-        <!-- 兜底 Prompt：仅在选择“交给模型继续生成”时展示 -->
+        <!-- Fallback Prompt: Only displayed when "Leave it to the model to continue generating" is selected -->
         <div v-else-if="localFallbackStrategy === 'model'" class="setting-row vertical">
           <div class="setting-info">
             <label>{{ $t('conversationSettings.fallbackPrompt.label') }}</label>
@@ -606,7 +606,7 @@
           </div>
         </div>
 
-        <!-- 普通模式生成参数：Temperature -->
+        <!-- Normal Mode Generation Params: Temperature -->
         <div class="setting-row">
           <div class="setting-info">
             <label>{{ $t('conversationSettings.temperature.label') }}</label>
@@ -628,7 +628,7 @@
           </div>
         </div>
 
-        <!-- 普通模式生成参数：Max Tokens -->
+        <!-- Normal Mode Generation Params: Max Tokens -->
         <div class="setting-row">
           <div class="setting-info">
             <label>{{ $t('conversationSettings.maxTokens.label') }}</label>
@@ -665,14 +665,14 @@ const props = defineProps<{
   activeSubSection?: string
 }>()
 
-// 当前子页面（模式、模型、阈值、高级）
+// Current sub-page (modes, models, thresholds, advanced)
 const activeSection = computed(() => props.activeSubSection || 'modes')
 
 const settingsStore = useSettingsStore()
 const router = useRouter()
 const { t } = useI18n()
 
-// Tab 状态
+// Tab state
 const activeTab = ref('agent')
 
 const getDefaultConversationConfig = (): ConversationConfig => ({
@@ -708,7 +708,7 @@ const conversationConfig = ref<ConversationConfig>(getDefaultConversationConfig(
 const conversationConfigLoaded = ref(false)
 const conversationSaving = ref(false)
 
-// Agent 模式本地状态
+// Agent mode local state
 const localMaxIterations = ref(5)
 const localTemperature = ref(0.7)
 const localAllowedTools = ref<string[]>([])
@@ -729,7 +729,7 @@ const getPromptRefByTab = (tab: SystemPromptTab) => systemPromptRefs[tab]
 const getActivePromptRef = () => getPromptRefByTab(activeSystemPromptTab.value)
 const localUseCustomSystemPrompt = ref(false)
 
-// 普通模式本地状态
+// Normal mode local state
 const localContextTemplate = ref('')
 const localSystemPromptNormal = ref('')
 const localTemperatureNormal = ref(0.3)
@@ -755,7 +755,7 @@ const localRewritePromptUser = ref('')
 const localSummaryModelId = ref('')
 const localConversationRerankModelId = ref('')
 
-// 普通模式 Prompt 是否自定义（关闭时使用系统默认）
+// Whether Normal mode Prompt is customized (uses system default when off)
 const localUseCustomSystemPromptNormal = ref(true)
 const localUseCustomContextTemplate = ref(true)
 
@@ -811,7 +811,7 @@ const saveConversationConfig = async (partial: Partial<ConversationConfig>, toas
       MessagePlugin.success(toastMessage)
     }
   } catch (error) {
-    console.error('保存对话配置失败:', error)
+    console.error('Failed to save conversation config:', error)
     MessagePlugin.error(getErrorMessage(error))
     throw error
   } finally {
@@ -819,7 +819,7 @@ const saveConversationConfig = async (partial: Partial<ConversationConfig>, toas
   }
 }
 
-// 计算 Agent 是否就绪
+// Check if Agent is ready
 const isAgentReady = computed(() => {
   return (
     localAllowedTools.value.length > 0 &&
@@ -841,7 +841,7 @@ const buildAgentConfigPayload = (overrides: Partial<AgentConfig> = {}): AgentCon
   ...overrides,
 })
 
-// 是否缺少模型配置
+// Check if model configuration is missing
 const needsModelConfig = computed(() => {
   return (
     (!localSummaryModelId.value || localSummaryModelId.value.trim() === '') ||
@@ -849,7 +849,7 @@ const needsModelConfig = computed(() => {
   )
 })
 
-// Agent 状态提示消息
+// Agent status hint message
 const agentStatusMessage = computed(() => {
   const missing: string[] = []
   
@@ -872,7 +872,7 @@ const agentStatusMessage = computed(() => {
   return t('agentSettings.status.pleaseConfigure', { items: missing.join('、') })
 })
 
-// 跳转到模型配置
+// Redirect to model settings
 const handleGoToModelSettings = () => {
   router.push('/platform/settings')
 
@@ -891,14 +891,14 @@ const handleGoToModelSettings = () => {
   }, 100)
 }
 
-// 模型列表状态
+// Model list state
 const chatModels = ref<ModelConfig[]>([])
 const rerankModels = ref<ModelConfig[]>([])
 const loadingModels = ref(false)
 
-// 可用工具列表
+// Available tools list
 const availableTools = ref<ToolDefinition[]>([])
-// 可用占位符列表
+// Available placeholders list
 const availablePlaceholders = ref<PlaceholderDefinition[]>([])
 const displayAllowedTools = computed(() => {
   return localAllowedTools.value.map(name => {
@@ -911,24 +911,24 @@ const displayAllowedTools = computed(() => {
   })
 })
 
-// 配置加载状态
+// Config loading state
 const loadingConfig = ref(false)
-const configLoaded = ref(false) // 防止重复加载
-const isInitializing = ref(true) // 标记是否正在初始化，防止初始化时触发保存
+const configLoaded = ref(false) // Prevent duplicate loading
+const isInitializing = ref(true) // Mark if initializing, to prevent triggering save during initialization
 
-// 保存的 Prompt 值，用于比较是否变化
+// Saved Prompt value, used to compare for changes
 let savedUseCustomSystemPrompt = false
 
-// 恢复默认 Prompt 的加载状态
+// Loading state for resetting to default Prompt
 const isResettingPrompt = ref(false)
 
-// 占位符提示相关状态
+// Placeholder prompt related state
 const promptTextareaRef = ref<any>(null)
 const showPlaceholderPopup = ref(false)
 const selectedPlaceholderIndex = ref(0)
 let placeholderPopupTimer: any = null
-const placeholderPrefix = ref('') // 当前输入的前缀，用于过滤
-const popupStyle = ref({ top: '0px', left: '0px' }) // 提示框位置
+const placeholderPrefix = ref('') // Current input prefix, used for filtering
+const popupStyle = ref({ top: '0px', left: '0px' }) // Prompt box position
 
 watch(activeSystemPromptTab, () => {
   showPlaceholderPopup.value = false
@@ -936,39 +936,39 @@ watch(activeSystemPromptTab, () => {
   selectedPlaceholderIndex.value = 0
 })
 
-// 设置 textarea 原生事件监听器
+// Set up textarea native event listeners
 const setupTextareaEventListeners = () => {
   nextTick(() => {
     const textarea = getTextareaElement()
     if (textarea) {
-      // 添加原生 keydown 事件监听（使用 capture 阶段，确保优先处理）
+      // Add native keydown event listener (use capture phase to ensure priority processing)
       textarea.addEventListener('keydown', (e: KeyboardEvent) => {
-        // 如果正在显示占位符提示，优先处理占位符相关的按键
+        // If placeholder prompt is showing, prioritize placeholder-related keys
         if (showPlaceholderPopup.value && filteredPlaceholders.value.length > 0) {
           if (e.key === 'ArrowDown') {
-            // 下箭头选择下一个
+            // ArrowDown selects the next item
             e.preventDefault()
             e.stopPropagation()
             e.stopImmediatePropagation()
             if (selectedPlaceholderIndex.value < filteredPlaceholders.value.length - 1) {
               selectedPlaceholderIndex.value++
             } else {
-              selectedPlaceholderIndex.value = 0 // 循环到第一个
+              selectedPlaceholderIndex.value = 0 // Loop to the first one
             }
             return
           } else if (e.key === 'ArrowUp') {
-            // 上箭头选择上一个
+            // ArrowUp selects the previous item
             e.preventDefault()
             e.stopPropagation()
             e.stopImmediatePropagation()
             if (selectedPlaceholderIndex.value > 0) {
               selectedPlaceholderIndex.value--
             } else {
-              selectedPlaceholderIndex.value = filteredPlaceholders.value.length - 1 // 循环到最后一个
+              selectedPlaceholderIndex.value = filteredPlaceholders.value.length - 1 // Loop to the last one
             }
             return
           } else if (e.key === 'Enter') {
-            // Enter 键插入选中的占位符
+            // Enter key inserts the selected placeholder
             e.preventDefault()
             e.stopPropagation()
             e.stopImmediatePropagation()
@@ -978,7 +978,7 @@ const setupTextareaEventListeners = () => {
             }
             return
           } else if (e.key === 'Escape') {
-            // ESC 键关闭提示
+            // ESC key closes the prompt
             e.preventDefault()
             e.stopPropagation()
             e.stopImmediatePropagation()
@@ -988,21 +988,21 @@ const setupTextareaEventListeners = () => {
           }
         }
         
-        // 如果按下的是 { 键
+        // If the pressed key is {
         if (e.key === '{') {
-          // 清除之前的定时器
+          // Clear previous timer
           if (placeholderPopupTimer) {
             clearTimeout(placeholderPopupTimer)
           }
           
-          // 延迟检查，等待输入完成（连续输入两个 {）
+          // Delayed check, wait for input to complete (consecutive input of two {)
           placeholderPopupTimer = setTimeout(() => {
             checkAndShowPlaceholderPopup()
           }, 150)
         }
       }, true) // 使用 capture 阶段
       
-      // 添加原生 input 事件监听（作为备用）
+      // Add native input event listener (as fallback)
       textarea.addEventListener('input', () => {
         if (placeholderPopupTimer) {
           clearTimeout(placeholderPopupTimer)
@@ -1015,7 +1015,7 @@ const setupTextareaEventListeners = () => {
   })
 }
 
-// 获取 textarea 元素的辅助函数
+// Helper function to get textarea element
 const getTextareaElement = (): HTMLTextAreaElement | null => {
   if (promptTextareaRef.value) {
     if (promptTextareaRef.value.$el) {
@@ -1025,14 +1025,14 @@ const getTextareaElement = (): HTMLTextAreaElement | null => {
     }
   }
   
-  // 如果还是找不到，尝试通过 DOM 查找
+  // If still not found, try finding via DOM
   const wrapper = document.querySelector('.setting-control.full-width')
   return wrapper?.querySelector('textarea') || null
 }
 
-// 初始化加载
+// Initial load
 onMounted(async () => {
-  // 防止重复加载
+  // Prevent duplicate loading
   if (configLoaded.value) return
   
   loadingConfig.value = true
@@ -1040,13 +1040,13 @@ onMounted(async () => {
   isInitializing.value = true
   
   try {
-    // 从后台加载配置
+    // Load config from backend
     const res = await getAgentConfig()
     const config = res.data
     
-    // 更新本地状态（在初始化期间，不会触发保存）
+    // Update local state (save won't be triggered during initialization)
     localMaxIterations.value = config.max_iterations
-    lastSavedValue = config.max_iterations // 初始化时记录已保存的值
+    lastSavedValue = config.max_iterations // Record initial saved value
     localTemperature.value = config.temperature
     localAllowedTools.value = config.allowed_tools || []
     const promptWebEnabled = config.system_prompt_web_enabled || ''
@@ -1061,15 +1061,15 @@ onMounted(async () => {
     availableTools.value = config.available_tools || []
     availablePlaceholders.value = config.available_placeholders || []
     
-    // 调试信息
+    // Debug info
     console.log('加载的占位符列表:', availablePlaceholders.value)
     
-    // 统一加载所有模型（只调用一次API）
+    // Batch load all models (single API call)
       await loadAllModels()
     
-    // 同步到store（只更新本地存储，不触发API保存）
-    // 注意：不自动设置 isAgentEnabled，保持用户之前的选择
-    // enabled 状态应该由用户手动控制，而不是根据配置自动设置
+    // Sync to store (updates local storage only, no API save)
+    // Note: isAgentEnabled is not set automatically, keep user choice
+    // Enabled status should be manually controlled by the user
     settingsStore.updateAgentConfig({
       maxIterations: config.max_iterations,
       temperature: config.temperature,
@@ -1079,7 +1079,7 @@ onMounted(async () => {
       use_custom_system_prompt: useCustomPrompt
     })
 
-    // 加载普通模式配置
+    // Load Normal mode config
     if (!conversationConfigLoaded.value) {
       try {
         const convRes = await getConversationConfig()
@@ -1088,36 +1088,36 @@ onMounted(async () => {
         syncConversationLocals()
       } catch (error) {
         console.error('加载普通模式配置失败:', error)
-        // 使用默认值
+        // Use default values
         conversationConfigLoaded.value = true
       }
     }
     
-    // 等待下一个 tick，确保所有响应式更新完成
+    // Wait for next tick to ensure all reactive updates are complete
     await nextTick()
-    // 再等待一帧，确保所有事件监听器都已设置好
+    // Wait one more frame to ensure event listeners are set up
     requestAnimationFrame(() => {
-      // 初始化完成，现在可以允许保存操作
+      // Initialization complete, saving is now allowed
       isInitializing.value = false
       
-      // 设置原生事件监听器（作为备用方案）
+      // Set up native event listeners (as fallback)
       setupTextareaEventListeners()
     })
   } catch (error) {
-    console.error('加载Agent配置失败:', error)
-    MessagePlugin.error('加载Agent配置失败')
-    configLoaded.value = false // 加载失败时重置标记，允许重试
+    console.error('Failed to load Agent config:', error)
+    MessagePlugin.error('Failed to load Agent config')
+    configLoaded.value = false // Reset flag on failure to allow retry
     
-    // 失败时从store加载
+    // Load from store on failure
     localMaxIterations.value = settingsStore.agentConfig.maxIterations
     localTemperature.value = settingsStore.agentConfig.temperature
   } finally {
     loadingConfig.value = false
-    isInitializing.value = false // 确保初始化完成，即使失败也要允许后续操作
+    isInitializing.value = false    // Ensure initialization is marked complete even on failure
   }
 })
 
-// 错误码到错误消息的映射
+// Map error codes to error messages
 const getErrorMessage = (error: any): string => {
   const errorCode = error?.response?.data?.error?.code
   const errorMessage = error?.response?.data?.error?.message
@@ -1138,36 +1138,36 @@ const getErrorMessage = (error: any): string => {
   }
 }
 
-// 防抖定时器
+// Debounce timer
 let maxIterationsDebounceTimer: any = null
-// 上次保存的值，用于避免重复保存相同值
+// Last saved value, to avoid duplicate saves of the same value
 let lastSavedValue: number | null = null
 
-// 处理最大迭代次数变化（防抖版本，点击和拖动都使用这个）
+// Handle max iterations change (debounced version, for both clicks and drags)
 const handleMaxIterationsChangeDebounced = (value: number) => {
-  // 如果正在初始化，不触发保存
+  // Don't trigger save if initializing
   if (isInitializing.value) return
   
-  // 确保 value 是数字类型
+  // Ensure value is a number
   const numValue = typeof value === 'number' ? value : Number(value)
   if (isNaN(numValue)) {
     console.error('Invalid max_iterations value:', value)
     return
   }
   
-  // 如果值没有变化，不保存
+  // Don't save if value hasn't changed
   if (lastSavedValue === numValue) {
     return
   }
   
-  // 清除之前的定时器
+  // Clear previous timer
   if (maxIterationsDebounceTimer) {
     clearTimeout(maxIterationsDebounceTimer)
 }
 
-  // 设置新的定时器，300ms 后保存（减少延迟，提升响应速度）
+  // Set new timer, save after 300ms (reduced delay for better responsiveness)
   maxIterationsDebounceTimer = setTimeout(async () => {
-    // 再次检查值是否变化（可能在等待期间值又变了）
+    // Re-check if value changed (might have changed during wait)
     if (lastSavedValue === numValue) {
       maxIterationsDebounceTimer = null
       return
@@ -1177,10 +1177,10 @@ const handleMaxIterationsChangeDebounced = (value: number) => {
     const config = buildAgentConfigPayload({ max_iterations: numValue })
     await updateAgentConfig(config)
       settingsStore.updateAgentConfig({ maxIterations: numValue })
-      lastSavedValue = numValue // 记录已保存的值
+      lastSavedValue = numValue // Record saved value
     MessagePlugin.success(t('agentSettings.toasts.iterationsSaved'))
   } catch (error) {
-    console.error('保存失败:', error)
+    console.error('Save failed:', error)
     MessagePlugin.error(getErrorMessage(error))
     } finally {
       maxIterationsDebounceTimer = null
@@ -1188,37 +1188,37 @@ const handleMaxIterationsChangeDebounced = (value: number) => {
   }, 300)
 }
 
-// 统一加载所有模型（只调用一次API）
+// Batch load all models (single API call)
 const loadAllModels = async () => {
-  if (chatModels.value.length > 0 && rerankModels.value.length > 0) return // 已经加载过
+  if (chatModels.value.length > 0 && rerankModels.value.length > 0) return // Already loaded
   
   loadingModels.value = true
   try {
     const allModels = await listModels()
-    // 按类型过滤，避免重复调用
+    // Filter by type to avoid redundant calls
     chatModels.value = allModels.filter(m => m.type === 'KnowledgeQA')
     rerankModels.value = allModels.filter(m => m.type === 'Rerank')
   } catch (error) {
-    console.error('加载模型列表失败:', error)
-    MessagePlugin.error('加载模型列表失败')
+    console.error('Failed to load model list:', error)
+    MessagePlugin.error('Failed to load model list')
   } finally {
     loadingModels.value = false
   }
 }
 
-// 加载对话模型列表（已废弃，使用 loadAllModels）
+// Load chat models (deprecated, use loadAllModels)
 const loadChatModels = async () => {
   await loadAllModels()
 }
 
-// 加载 Rerank 模型列表（已废弃，使用 loadAllModels）
+// Load ReRank models (deprecated, use loadAllModels)
 const loadRerankModels = async () => {
   await loadAllModels()
 }
 
-// 处理温度参数变化
+// Handle temperature change
 const handleTemperatureChange = async (value: number) => {
-  // 如果正在初始化，不触发保存
+  // Don't trigger save if initializing
   if (isInitializing.value) return
   
   try {
@@ -1227,12 +1227,12 @@ const handleTemperatureChange = async (value: number) => {
     settingsStore.updateAgentConfig({ temperature: value })
     MessagePlugin.success(t('agentSettings.toasts.temperatureSaved'))
   } catch (error) {
-    console.error('保存失败:', error)
+    console.error('Save failed:', error)
     MessagePlugin.error(getErrorMessage(error))
   }
 }
 
-// 切换是否启用自定义 Prompt
+// Toggle custom Prompt enabled
 const handleUseCustomPromptToggle = async (value: boolean) => {
   if (isInitializing.value) return
   if (value === savedUseCustomSystemPrompt) return
@@ -1244,18 +1244,18 @@ const handleUseCustomPromptToggle = async (value: boolean) => {
 
     MessagePlugin.success(value ? t('agentSettings.toasts.customPromptEnabled') : t('agentSettings.toasts.defaultPromptEnabled'))
   } catch (error) {
-    console.error('切换自定义 Prompt 失败:', error)
+    console.error('Failed to toggle custom Prompt:', error)
     MessagePlugin.error(getErrorMessage(error))
-    // 回滚开关状态
+    // Rollback switch state
     localUseCustomSystemPrompt.value = savedUseCustomSystemPrompt
   }
 }
 
-// 处理系统 Prompt 键盘事件（作为备用，主要逻辑在原生事件监听器中）
+// Handle system Prompt keydown (fallback, main logic in native listener)
 const handlePromptKeydown = (e: KeyboardEvent) => {
-  // 如果正在显示占位符提示，且输入的是字母、数字或下划线，实时更新过滤
+  // If placeholder prompt is showing, update filter on alphanumeric or underscore input
   if (showPlaceholderPopup.value && /^[a-zA-Z0-9_]$/.test(e.key)) {
-    // 延迟检查，等待字符输入完成
+    // Delay check, wait for character input to complete
     if (placeholderPopupTimer) {
       clearTimeout(placeholderPopupTimer)
     }
@@ -1265,7 +1265,7 @@ const handlePromptKeydown = (e: KeyboardEvent) => {
   }
 }
 
-// 过滤后的占位符列表（根据前缀匹配）
+// Filtered placeholders list (prefix match)
 const filteredPlaceholders = computed(() => {
   if (!placeholderPrefix.value) {
     return availablePlaceholders.value
@@ -1277,29 +1277,29 @@ const filteredPlaceholders = computed(() => {
   )
 })
 
-// 计算光标在 textarea 中的像素位置
+// Calculate cursor pixel position in textarea
 const calculateCursorPosition = (textarea: HTMLTextAreaElement) => {
   const cursorPos = textarea.selectionStart
   const activePromptValue = getActivePromptRef().value
   const textBeforeCursor = activePromptValue.substring(0, cursorPos)
   
-  // 获取 textarea 的样式和位置
+  // Get textarea style and position
   const style = window.getComputedStyle(textarea)
   const textareaRect = textarea.getBoundingClientRect()
   
-  // 计算行数和当前行的文本
+  // Calculate line count and current line text
   const lines = textBeforeCursor.split('\n')
   const currentLine = lines.length - 1
   const lineText = lines[currentLine] || ''
   
-  // 获取行高
+  // Get line height
   const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2
   
-  // 获取 padding
+  // Get padding
   const paddingTop = parseFloat(style.paddingTop) || 0
   const paddingLeft = parseFloat(style.paddingLeft) || 0
   
-  // 使用 canvas 测量当前行的文本宽度（更准确）
+  // Use canvas to measure current line text width (more accurate)
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d')
   let textWidth = 0
@@ -1308,23 +1308,23 @@ const calculateCursorPosition = (textarea: HTMLTextAreaElement) => {
     context.font = `${style.fontSize} ${style.fontFamily}`
     textWidth = context.measureText(lineText).width
   } else {
-    // 回退方案：使用等宽字体估算（Monaco/Menlo 是等宽字体）
+    // Fallback: estimate using monospace font width (Monaco/Menlo are monospace)
     const charWidth = parseFloat(style.fontSize) * 0.6 // 等宽字体字符宽度约为字体大小的 0.6 倍
     textWidth = lineText.length * charWidth
   }
   
-  // 计算光标位置的 top（考虑滚动）
+  // Calculate cursor top position (considering scroll)
   const scrollTop = textarea.scrollTop
   const top = textareaRect.top + paddingTop + (currentLine * lineHeight) - scrollTop + lineHeight + 4
   
-  // 计算光标位置的 left（考虑滚动）
+  // Calculate cursor left position (considering scroll)
   const scrollLeft = textarea.scrollLeft
   const left = textareaRect.left + paddingLeft + textWidth - scrollLeft
   
   return { top, left }
 }
 
-// 检查并显示占位符提示
+// Check and show placeholder popup
 const checkAndShowPlaceholderPopup = () => {
   const textarea = getTextareaElement()
   
@@ -1335,14 +1335,14 @@ const checkAndShowPlaceholderPopup = () => {
   const cursorPos = textarea.selectionStart
   const textBeforeCursor = getActivePromptRef().value.substring(0, cursorPos)
   
-  // 检查是否输入了 {{（从光标位置向前查找最近的 {{）
-  // 需要找到光标前最近的 {{，且中间没有 }}
+  // Check if {{ was input (look back from cursor for nearest {{)
+  // Need to find nearest {{ before cursor, with no }} in between
   let lastOpenPos = -1
   for (let i = cursorPos - 1; i >= 0; i--) {
     if (i > 0 && textBeforeCursor[i - 1] === '{' && textBeforeCursor[i] === '{') {
-      // 找到了 {{
+      // Found {{
       const textAfterOpen = textBeforeCursor.substring(i + 1)
-      // 检查是否已经包含 }}（说明占位符已完成）
+      // Check if it already contains }} (placeholder complete)
       if (!textAfterOpen.includes('}}')) {
         lastOpenPos = i - 1
         break
@@ -1351,24 +1351,24 @@ const checkAndShowPlaceholderPopup = () => {
   }
   
   if (lastOpenPos === -1) {
-    // 没有找到有效的 {{，隐藏提示
+    // No valid {{ found, hide prompt
     showPlaceholderPopup.value = false
     placeholderPrefix.value = ''
     return
   }
   
-  // 获取 {{ 之后到光标位置的内容作为前缀
+  // Get content from {{ to cursor position as prefix
   const textAfterOpen = textBeforeCursor.substring(lastOpenPos + 2)
   
-  // 更新前缀
+  // Update prefix
   placeholderPrefix.value = textAfterOpen
   
-  // 根据前缀过滤占位符
+  // Filter placeholders by prefix
   const filtered = filteredPlaceholders.value
   
   if (filtered.length > 0) {
-    // 有匹配的占位符，显示提示
-    // 计算光标位置
+    // Match found, show prompt
+    // Calculate cursor position
     nextTick(() => {
       const position = calculateCursorPosition(textarea)
       popupStyle.value = {
@@ -1376,41 +1376,41 @@ const checkAndShowPlaceholderPopup = () => {
         left: `${position.left}px`
       }
       showPlaceholderPopup.value = true
-      // 重置选中索引为第一个（默认选择第一个）
+      // Reset selected index to first (default)
       selectedPlaceholderIndex.value = 0
     })
   } else {
-    // 没有匹配的占位符，隐藏提示
+    // No match found, hide prompt
     showPlaceholderPopup.value = false
   }
 }
 
-// 处理系统 Prompt 输入
+// Handle system Prompt input
 const handlePromptInput = () => {
-  // 清除之前的定时器
+  // Clear previous timer
   if (placeholderPopupTimer) {
     clearTimeout(placeholderPopupTimer)
   }
   
-  // 延迟检查，避免频繁触发
+  // Delay check to avoid frequent triggers
   placeholderPopupTimer = setTimeout(() => {
     checkAndShowPlaceholderPopup()
   }, 50)
 }
 
-// 插入占位符
+// Insert placeholder
 const insertPlaceholder = (placeholderName: string) => {
   const textarea = getTextareaElement()
   if (!textarea) {
     return
   }
   
-  // 先关闭提示，避免触发 blur 事件
+  // Close prompt first to avoid triggering blur event
   showPlaceholderPopup.value = false
   placeholderPrefix.value = ''
   selectedPlaceholderIndex.value = 0
   
-  // 延迟执行，确保提示框已关闭
+  // Delay execution to ensure prompt box is closed
   nextTick(() => {
     const cursorPos = textarea.selectionStart
     const promptRef = getActivePromptRef()
@@ -1418,24 +1418,24 @@ const insertPlaceholder = (placeholderName: string) => {
     const textBeforeCursor = currentValue.substring(0, cursorPos)
     const textAfterCursor = currentValue.substring(cursorPos)
     
-    // 找到最后一个 {{ 的位置
+    // Find position of last {{
     const lastOpenPos = textBeforeCursor.lastIndexOf('{{')
     if (lastOpenPos === -1) {
-      // 如果没有找到 {{，直接插入完整的占位符
+      // If no {{ found, insert complete placeholder directly
       const placeholder = `{{${placeholderName}}}`
       promptRef.value = textBeforeCursor + placeholder + textAfterCursor
-      // 设置光标位置
+      // Set cursor position
       nextTick(() => {
         const newPos = cursorPos + placeholder.length
         textarea.setSelectionRange(newPos, newPos)
         textarea.focus()
       })
     } else {
-      // 替换 {{ 到光标位置的内容为完整的占位符
+      // Replace content from {{ to cursor with complete placeholder
       const beforePlaceholder = textBeforeCursor.substring(0, lastOpenPos)
       const placeholder = `{{${placeholderName}}}`
       promptRef.value = beforePlaceholder + placeholder + textAfterCursor
-      // 设置光标位置
+      // Set cursor position
       nextTick(() => {
         const newPos = lastOpenPos + placeholder.length
         textarea.setSelectionRange(newPos, newPos)
@@ -1445,7 +1445,7 @@ const insertPlaceholder = (placeholderName: string) => {
   })
 }
 
-// 恢复默认 Prompt
+// Reset to default Prompt
 const handleResetToDefault = async () => {
   const confirmDialog = DialogPlugin.confirm({
     header: t('agentSettings.reset.header'),
@@ -1456,8 +1456,8 @@ const handleResetToDefault = async () => {
       try {
         isResettingPrompt.value = true
         
-        // 通过设置 system_prompt_web_* 为空字符串来获取默认值
-        // 后端在字段为空时会返回默认值
+        // Get default values by setting system_prompt_web_* to empty strings
+        // Backend returns defaults when fields are empty
         const tempConfig = buildAgentConfigPayload({
           system_prompt_web_enabled: '',
           system_prompt_web_disabled: '',
@@ -1466,13 +1466,13 @@ const handleResetToDefault = async () => {
         
         await updateAgentConfig(tempConfig)
         
-        // 重新加载配置以获取默认 Prompt 的完整内容
+        // Reload config to get full content of default Prompt
         const res = await getAgentConfig()
         const defaultPromptWebEnabled = res.data.system_prompt_web_enabled || ''
         const defaultPromptWebDisabled = res.data.system_prompt_web_disabled || ''
         const useCustom = res.data.use_custom_system_prompt ?? false
         
-        // 设置为默认 Prompt 的内容
+        // Set to default Prompt content
         localSystemPromptWebEnabled.value = defaultPromptWebEnabled
         localSystemPromptWebDisabled.value = defaultPromptWebDisabled
         savedSystemPromptMap['web-enabled'] = defaultPromptWebEnabled
@@ -1483,7 +1483,7 @@ const handleResetToDefault = async () => {
         MessagePlugin.success(t('agentSettings.toasts.resetToDefault'))
         confirmDialog.hide()
       } catch (error) {
-        console.error('恢复默认 Prompt 失败:', error)
+        console.error('Failed to reset to default Prompt:', error)
         MessagePlugin.error(getErrorMessage(error))
       } finally {
         isResettingPrompt.value = false
@@ -1492,9 +1492,9 @@ const handleResetToDefault = async () => {
   })
 }
 
-// 处理系统 Prompt 变化
+// Handle system Prompt change
 const handleSystemPromptChange = async (tab: SystemPromptTab, e?: FocusEvent) => {
-  // 如果点击的是占位符提示框，不触发保存
+  // If placeholder prompt box was clicked, don't trigger save
   if (e?.relatedTarget) {
     const target = e.relatedTarget as HTMLElement
     if (target.closest('.placeholder-popup-wrapper')) {
@@ -1502,26 +1502,26 @@ const handleSystemPromptChange = async (tab: SystemPromptTab, e?: FocusEvent) =>
     }
   }
   
-  // 延迟检查，避免点击占位符时立即触发
+  // Delay check to avoid immediate trigger when clicking placeholder
   await nextTick()
   
-  // 如果占位符提示框还在显示，说明用户点击了占位符，不触发保存
+  // If placeholder prompt box is still showing, it means user clicked placeholder; don't trigger save
   if (showPlaceholderPopup.value) {
     return
   }
   
-  // 隐藏占位符提示
+  // Hide placeholder prompt
   placeholderPrefix.value = ''
   
-  // 如果正在初始化，不触发保存
+  // Don't trigger save if initializing
   if (isInitializing.value) return
   
   const promptRef = getPromptRefByTab(tab)
   const savedValue = savedSystemPromptMap[tab]
 
-  // 检查内容是否变化
+  // Check if content changed
   if (promptRef.value === savedValue) {
-    return // 内容没变，不调用接口
+    return // Content unchanged, don't call API
   }
   
   try {
@@ -1530,24 +1530,24 @@ const handleSystemPromptChange = async (tab: SystemPromptTab, e?: FocusEvent) =>
     savedSystemPromptMap[tab] = promptRef.value // 更新已保存的值
     MessagePlugin.success(t('agentSettings.toasts.systemPromptSaved'))
   } catch (error) {
-    console.error('保存系统 Prompt 失败:', error)
+    console.error('Failed to save system Prompt:', error)
     MessagePlugin.error(getErrorMessage(error))
   }
 }
 
-// 监听 Agent 就绪状态变化，同步到 store
+// Listen to Agent ready status change, sync to store
 watch(isAgentReady, (newValue, oldValue) => {
   if (!isInitializing.value) {
-    // 如果配置从"就绪"变为"未就绪"，且 Agent 当前是启用状态，自动关闭
+    // If config goes from "ready" to "not ready", and Agent is enabled, disable it automatically
     if (!newValue && oldValue && settingsStore.isAgentEnabled) {
       settingsStore.toggleAgent(false)
       MessagePlugin.warning(t('agentSettings.toasts.autoDisabled'))
     }
-    // 注意：配置从"未就绪"变为"就绪"时，不自动启用（让用户自己决定是否启用）
+    // Note: Don't automatically enable when config goes from "not ready" to "ready" (let user decide)
   }
 })
 
-// 普通模式配置处理函数
+// Normal mode config handlers
 const handleContextTemplateChange = async () => {
   if (!conversationConfigLoaded.value) return
   
@@ -1565,7 +1565,7 @@ const handleContextTemplateChange = async () => {
     )
     savedContextTemplate = localContextTemplate.value
   } catch (error) {
-    console.error('保存Context Template失败:', error)
+    console.error('Failed to save Context Template:', error)
     MessagePlugin.error(getErrorMessage(error))
   }
 }
@@ -1600,7 +1600,7 @@ const handleUseCustomSystemPromptNormalToggle = async (value: boolean) => {
       savedSystemPromptNormal = localSystemPromptNormal.value
     }
   } catch (error) {
-    console.error('切换普通模式 System Prompt 自定义失败:', error)
+    console.error('Failed to toggle custom System Prompt in normal mode:', error)
     MessagePlugin.error(getErrorMessage(error))
     localUseCustomSystemPromptNormal.value = !value
   }
@@ -1630,7 +1630,7 @@ const handleUseCustomContextTemplateToggle = async (value: boolean) => {
       savedContextTemplate = localContextTemplate.value
     }
   } catch (error) {
-    console.error('切换普通模式 Context Template 自定义失败:', error)
+    console.error('Failed to toggle custom Context Template in normal mode:', error)
     MessagePlugin.error(getErrorMessage(error))
     localUseCustomContextTemplate.value = !value
   }
@@ -1653,7 +1653,7 @@ const handleSystemPromptNormalChange = async () => {
     )
     savedSystemPromptNormal = localSystemPromptNormal.value
   } catch (error) {
-    console.error('保存System Prompt失败:', error)
+    console.error('Failed to save System Prompt:', error)
     MessagePlugin.error(getErrorMessage(error))
   }
 }
@@ -1669,7 +1669,7 @@ const handleTemperatureNormalChange = async (value: number) => {
     )
     savedTemperatureNormal = value
   } catch (error) {
-    console.error('保存Temperature失败:', error)
+    console.error('Failed to save Temperature:', error)
     MessagePlugin.error(getErrorMessage(error))
   }
 }
@@ -1684,7 +1684,7 @@ const handleMaxCompletionTokensChange = async (value: number) => {
     )
     savedMaxCompletionTokens = value
   } catch (error) {
-    console.error('保存Max Tokens失败:', error)
+    console.error('Failed to save Max Tokens:', error)
     MessagePlugin.error(getErrorMessage(error))
   }
 }
@@ -1693,7 +1693,7 @@ const handleMaxRoundsChange = async (value: number) => {
   try {
     await saveConversationConfig({ max_rounds: value }, t('conversationSettings.toasts.maxRoundsSaved'))
   } catch (error) {
-    console.error('保存 max_rounds 失败:', error)
+    console.error('Failed to save max_rounds:', error)
     localMaxRounds.value = conversationConfig.value.max_rounds
   }
 }
@@ -1702,7 +1702,7 @@ const handleEmbeddingTopKChange = async (value: number) => {
   try {
     await saveConversationConfig({ embedding_top_k: value }, t('conversationSettings.toasts.embeddingSaved'))
   } catch (error) {
-    console.error('保存 embedding_top_k 失败:', error)
+    console.error('Failed to save embedding_top_k:', error)
     localEmbeddingTopK.value = conversationConfig.value.embedding_top_k
   }
 }
@@ -1711,7 +1711,7 @@ const handleKeywordThresholdChange = async (value: number) => {
   try {
     await saveConversationConfig({ keyword_threshold: value }, t('conversationSettings.toasts.keywordThresholdSaved'))
   } catch (error) {
-    console.error('保存 keyword_threshold 失败:', error)
+    console.error('Failed to save keyword_threshold:', error)
     localKeywordThreshold.value = conversationConfig.value.keyword_threshold
   }
 }
@@ -1720,7 +1720,7 @@ const handleVectorThresholdChange = async (value: number) => {
   try {
     await saveConversationConfig({ vector_threshold: value }, t('conversationSettings.toasts.vectorThresholdSaved'))
   } catch (error) {
-    console.error('保存 vector_threshold 失败:', error)
+    console.error('Failed to save vector_threshold:', error)
     localVectorThreshold.value = conversationConfig.value.vector_threshold
   }
 }
@@ -1729,7 +1729,7 @@ const handleRerankTopKChange = async (value: number) => {
   try {
     await saveConversationConfig({ rerank_top_k: value }, t('conversationSettings.toasts.rerankTopKSaved'))
   } catch (error) {
-    console.error('保存 rerank_top_k 失败:', error)
+    console.error('Failed to save rerank_top_k:', error)
     localRerankTopK.value = conversationConfig.value.rerank_top_k
   }
 }
@@ -1738,7 +1738,7 @@ const handleRerankThresholdChange = async (value: number) => {
   try {
     await saveConversationConfig({ rerank_threshold: value }, t('conversationSettings.toasts.rerankThresholdSaved'))
   } catch (error) {
-    console.error('保存 rerank_threshold 失败:', error)
+    console.error('Failed to save rerank_threshold:', error)
     localRerankThreshold.value = conversationConfig.value.rerank_threshold
   }
 }
@@ -1747,7 +1747,7 @@ const handleEnableRewriteChange = async (value: boolean) => {
   try {
     await saveConversationConfig({ enable_rewrite: value }, t('conversationSettings.toasts.enableRewriteSaved'))
   } catch (error) {
-    console.error('保存 enable_rewrite 失败:', error)
+    console.error('Failed to save enable_rewrite:', error)
     localEnableRewrite.value = conversationConfig.value.enable_rewrite
   }
 }
@@ -1759,7 +1759,7 @@ const handleEnableQueryExpansionChange = async (value: boolean) => {
       t('conversationSettings.toasts.enableQueryExpansionSaved')
     )
   } catch (error) {
-    console.error('保存 enable_query_expansion 失败:', error)
+    console.error('Failed to save enable_query_expansion:', error)
     localEnableQueryExpansion.value = conversationConfig.value.enable_query_expansion ?? true
   }
 }
@@ -1768,7 +1768,7 @@ const handleFallbackStrategyChange = async (value: 'fixed' | 'model') => {
   try {
     await saveConversationConfig({ fallback_strategy: value }, t('conversationSettings.toasts.fallbackStrategySaved'))
   } catch (error) {
-    console.error('保存 fallback_strategy 失败:', error)
+    console.error('Failed to save fallback_strategy:', error)
     localFallbackStrategy.value = (conversationConfig.value.fallback_strategy as 'fixed' | 'model') || 'fixed'
   }
 }
@@ -1778,7 +1778,7 @@ const handleFallbackResponseChange = async () => {
   try {
     await saveConversationConfig({ fallback_response: localFallbackResponse.value }, t('conversationSettings.toasts.fallbackResponseSaved'))
   } catch (error) {
-    console.error('保存 fallback_response 失败:', error)
+    console.error('Failed to save fallback_response:', error)
     localFallbackResponse.value = conversationConfig.value.fallback_response ?? ''
   }
 }
@@ -1788,7 +1788,7 @@ const handleRewritePromptSystemChange = async () => {
   try {
     await saveConversationConfig({ rewrite_prompt_system: localRewritePromptSystem.value }, t('conversationSettings.toasts.rewritePromptSystemSaved'))
   } catch (error) {
-    console.error('保存 rewrite_prompt_system 失败:', error)
+    console.error('Failed to save rewrite_prompt_system:', error)
     localRewritePromptSystem.value = conversationConfig.value.rewrite_prompt_system ?? ''
   }
 }
@@ -1798,7 +1798,7 @@ const handleRewritePromptUserChange = async () => {
   try {
     await saveConversationConfig({ rewrite_prompt_user: localRewritePromptUser.value }, t('conversationSettings.toasts.rewritePromptUserSaved'))
   } catch (error) {
-    console.error('保存 rewrite_prompt_user 失败:', error)
+    console.error('Failed to save rewrite_prompt_user:', error)
     localRewritePromptUser.value = conversationConfig.value.rewrite_prompt_user ?? ''
   }
 }
@@ -1808,7 +1808,7 @@ const handleFallbackPromptChange = async () => {
   try {
     await saveConversationConfig({ fallback_prompt: localFallbackPrompt.value }, t('conversationSettings.toasts.fallbackPromptSaved'))
   } catch (error) {
-    console.error('保存 fallback_prompt 失败:', error)
+    console.error('Failed to save fallback_prompt:', error)
     localFallbackPrompt.value = conversationConfig.value.fallback_prompt ?? ''
   }
 }
@@ -1842,7 +1842,7 @@ const handleConversationSummaryModelChange = async (value: string) => {
   try {
     await saveConversationConfig({ summary_model_id: value }, t('conversationSettings.toasts.chatModelSaved'))
   } catch (error) {
-    console.error('保存 summary_model_id 失败:', error)
+    console.error('Failed to save summary_model_id:', error)
     localSummaryModelId.value = conversationConfig.value.summary_model_id ?? ''
   }
 }
@@ -1857,7 +1857,7 @@ const handleConversationRerankModelChange = async (value: string) => {
   try {
     await saveConversationConfig({ rerank_model_id: value }, t('conversationSettings.toasts.rerankModelSaved'))
   } catch (error) {
-    console.error('保存 rerank_model_id 失败:', error)
+    console.error('Failed to save rerank_model_id:', error)
     localConversationRerankModelId.value = conversationConfig.value.rerank_model_id ?? ''
   }
 }

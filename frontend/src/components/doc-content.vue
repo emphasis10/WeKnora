@@ -21,7 +21,7 @@ let doc = null;
 let down = ref()
 let mdContentWrap = ref()
 let url = ref('')
-// 视图模式：chunks / original
+// View mode: chunks / original
 const viewMode = ref<'chunks' | 'original'>('chunks');
 const originalContent = ref<string>('');
 const loadingOriginal = ref(false);
@@ -30,7 +30,7 @@ onMounted(() => {
     doc = document.getElementsByClassName('t-drawer__body')[0]
     doc.addEventListener('scroll', handleDetailsScroll);
   })
-  // 提供全局复制方法，供代码块按钮使用
+  // Provide global copy method for code block buttons
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   window.copyCodeBlock = (codeId: string) => {
@@ -38,9 +38,9 @@ onMounted(() => {
     if (!el) return;
     const text = el.innerText || '';
     navigator.clipboard?.writeText(text).then(() => {
-      MessagePlugin.success(t('common.copySuccess') || '复制成功');
+      MessagePlugin.success(t('common.copySuccess') || 'Copy success');
     }).catch(() => {
-      MessagePlugin.error(t('common.copyFailed') || '复制失败');
+      MessagePlugin.error(t('common.copyFailed') || 'Copy failed');
     });
   };
 })
@@ -62,12 +62,12 @@ const checkImage = (url) => {
   });
 };
 renderer.image = function (href, title, text) {
-  // 安全地处理图片链接
+  // Safely handle image links
   if (!isValidImageURL(href)) {
     return `<p>${t('error.invalidImageLink')}</p>`;
   }
   
-  // 使用安全的图片创建函数
+  // Use safe image creation function
   const safeImage = createSafeImage(href, text || '', title || '');
   return `<figure>
                 ${safeImage}
@@ -75,7 +75,7 @@ renderer.image = function (href, title, text) {
             </figure>`;
 };
 
-// 自定义代码块渲染器，添加语言标签与复制按钮
+// Custom code block renderer, adds language tag and copy button
 renderer.code = function (code, infostring) {
   const lang = (infostring || '').trim();
   let detectedLang = lang;
@@ -98,8 +98,8 @@ renderer.code = function (code, infostring) {
     <div class="code-block-wrapper" data-code-id="${codeId}">
       <div class="code-block-header">
         <span class="code-block-lang">${displayLang}</span>
-        <button class="code-block-copy-btn" onclick="window.copyCodeBlock && window.copyCodeBlock('${codeId}')" title="${t('common.copy') || '复制'}">
-          ${t('common.copy') || '复制'}
+        <button class="code-block-copy-btn" onclick="window.copyCodeBlock && window.copyCodeBlock('${codeId}')" title="${t('common.copy') || 'Copy'}">
+          ${t('common.copy') || 'Copy'}
         </button>
       </div>
       <pre class="code-block-pre"><code class="hljs language-${detectedLang || ''}" id="${codeId}">${highlighted}</code></pre>
@@ -122,7 +122,7 @@ const loadOriginalContent = async () => {
   if (!props.details.id || !props.details.type || props.details.type !== 'file') return;
   const fileType = props.details.file_type?.toLowerCase();
   if (!isTextFile(fileType)) {
-    MessagePlugin.warning(t('knowledgeBase.originalFileNotSupported') || '该文件类型不支持原文件展示，请下载查看');
+    MessagePlugin.warning(t('knowledgeBase.originalFileNotSupported') || 'This file type does not support original file preview. Please download to view.');
     return;
   }
   loadingOriginal.value = true;
@@ -132,7 +132,7 @@ const loadOriginalContent = async () => {
     originalContent.value = text;
   } catch (error: any) {
     console.error('Failed to load original content:', error);
-    MessagePlugin.error(error?.message || t('knowledgeBase.loadOriginalFailed') || '加载原文件内容失败');
+    MessagePlugin.error(error?.message || t('knowledgeBase.loadOriginalFailed') || 'Failed to load original file content');
   } finally {
     loadingOriginal.value = false;
   }
@@ -161,26 +161,26 @@ watch(() => props.details.md, (newVal) => {
   })
 }, { immediate: true, deep: true })
 
-// 安全地处理 Markdown 内容（使用 marked）
+// Safely handle Markdown content (using marked)
 const processMarkdown = (markdownText) => {
   if (!markdownText || typeof markdownText !== 'string') return '';
 
-  // 处理被 <p> 包裹的表格行，转换为正常的表格行，并在前后补空行
+  // Handle table rows wrapped in <p>, convert to normal table rows, and add empty lines before and after
   let processedText = markdownText.replace(/<p>\s*(\|[\s\S]*?\|)\s*<\/p>/gi, '\n$1\n');
 
-  // 保留表格单元格中的 <br>，不转成换行，避免打散表格；其他区域原样交给 marked 处理
+  // Keep <br> in table cells, don't convert to newlines to avoid breaking tables; handle other areas with marked
 
-  // 安全预处理
+  // Safety preprocessing
   const safeMarkdown = safeMarkdownToHTML(processedText);
 
-  // 使用标记渲染
+  // Render using marked
   marked.use({ renderer });
   let html = marked.parse(safeMarkdown);
 
-  // 还原被转义的 <br>
+  // Restore escaped <br>
   html = html.replace(/&lt;br\s*\/?&gt;/gi, '<br>');
 
-  // 最终安全清理
+  // Final safety cleanup
   return sanitizeHTML(html);
 };
 const handleClose = () => {
@@ -190,33 +190,33 @@ const handleClose = () => {
   originalContent.value = '';
 };
 
-// 获取显示标题
+// Get display title
 const getDisplayTitle = () => {
   if (!props.details.title) return '';
   if (props.details.type === 'file') {
-    // 文件类型去掉扩展名
+    // Remove extension for file types
     const lastDotIndex = props.details.title.lastIndexOf(".");
     return lastDotIndex > 0 ? props.details.title.substring(0, lastDotIndex) : props.details.title;
   }
-  // URL和手动创建直接返回标题
+  // Return title directly for URL and manual creation
   return props.details.title;
 };
 
-// 获取类型标签
+// Get type label
 const getTypeLabel = () => {
   switch (props.details.type) {
     case 'url':
-      return t('knowledgeBase.typeURL') || '网页';
+      return t('knowledgeBase.typeURL') || 'Webpage';
     case 'manual':
-      return t('knowledgeBase.typeManual') || '手动创建';
+      return t('knowledgeBase.typeManual') || 'Manual Creation';
     case 'file':
-      return props.details.file_type ? props.details.file_type.toUpperCase() : t('knowledgeBase.typeFile') || '文件';
+      return props.details.file_type ? props.details.file_type.toUpperCase() : t('knowledgeBase.typeFile') || 'File';
     default:
       return '';
   }
 };
 
-// 获取类型主题色
+// Get type theme color
 const getTypeTheme = () => {
   switch (props.details.type) {
     case 'url':
@@ -230,43 +230,43 @@ const getTypeTheme = () => {
   }
 };
 
-// 获取内容标签
+// Get content label
 const getContentLabel = () => {
   switch (props.details.type) {
     case 'url':
-      return t('knowledgeBase.webContent') || '网页内容';
+      return t('knowledgeBase.webContent') || 'Web Content';
     case 'manual':
-      return t('knowledgeBase.documentContent') || '文档内容';
+      return t('knowledgeBase.documentContent') || 'Document Content';
     case 'file':
     default:
-      return t('knowledgeBase.fileContent') || '文件内容';
+      return t('knowledgeBase.fileContent') || 'File Content';
   }
 };
 
-// 获取时间标签
+// Get time label
 const getTimeLabel = () => {
   switch (props.details.type) {
     case 'url':
-      return t('knowledgeBase.importTime') || '导入时间';
+      return t('knowledgeBase.importTime') || 'Import Time';
     case 'manual':
-      return t('knowledgeBase.createTime') || '创建时间';
+      return t('knowledgeBase.createTime') || 'Create Time';
     case 'file':
     default:
-      return t('knowledgeBase.uploadTime') || '上传时间';
+      return t('knowledgeBase.uploadTime') || 'Upload Time';
   }
 };
 
-// 获取Chunk样式类
+// Get Chunk style class
 const getChunkClass = (index: number) => {
   return index % 2 !== 0 ? 'chunk-odd' : 'chunk-even';
 };
 
-// 获取Chunk元数据
+// Get Chunk metadata
 const getChunkMeta = (item: any) => {
   if (!item) return '';
   const parts = [];
   if (item.char_count) {
-    parts.push(`${item.char_count} ${t('knowledgeBase.characters') || '字符'}`);
+    parts.push(`${item.char_count} ${t('knowledgeBase.characters') || 'Characters'}`);
   }
   if (item.token_count) {
     parts.push(`${item.token_count} tokens`);
@@ -274,22 +274,22 @@ const getChunkMeta = (item: any) => {
   return parts.join(' · ');
 };
 
-// 生成的问题类型
+// Generated question types
 interface GeneratedQuestion {
   id: string;
   question: string;
 }
 
-// 解析生成的问题
+// Parse generated questions
 const getGeneratedQuestions = (item: any): GeneratedQuestion[] => {
   if (!item || !item.metadata) return [];
   try {
     const metadata = typeof item.metadata === 'string' ? JSON.parse(item.metadata) : item.metadata;
     const questions = metadata.generated_questions || [];
-    // 兼容旧格式（字符串数组）和新格式（对象数组）
+    // Support both legacy (string array) and new (object array) formats
     return questions.map((q: string | GeneratedQuestion, index: number) => {
       if (typeof q === 'string') {
-        // 旧格式：字符串，生成临时ID
+        // Legacy format: string, generate temporary ID
         return { id: `legacy-${index}`, question: q };
       }
       return q;
@@ -299,7 +299,7 @@ const getGeneratedQuestions = (item: any): GeneratedQuestion[] => {
   }
 };
 
-// 展开状态管理
+// Expand state management
 const expandedChunks = ref<Set<number>>(new Set());
 
 const toggleQuestions = (index: number) => {
@@ -308,41 +308,41 @@ const toggleQuestions = (index: number) => {
   } else {
     expandedChunks.value.add(index);
   }
-  // 触发响应式更新
+  // Trigger reactive update
   expandedChunks.value = new Set(expandedChunks.value);
 };
 
 const isExpanded = (index: number) => expandedChunks.value.has(index);
 
-// 删除中的状态
+// Deleting state
 const deletingQuestion = ref<{ chunkIndex: number; questionId: string } | null>(null);
 
-// 删除生成的问题
+// Delete generated question
 const handleDeleteQuestion = async (item: any, chunkIndex: number, question: GeneratedQuestion) => {
   if (!item || !item.id) {
-    MessagePlugin.error(t('common.error') || '操作失败');
+    MessagePlugin.error(t('common.error') || 'Operation failed');
     return;
   }
 
-  // 检查是否是旧格式数据（无法删除）
+  // Check if legacy format data (cannot be deleted)
   if (question.id.startsWith('legacy-')) {
-    MessagePlugin.warning(t('knowledgeBase.legacyQuestionCannotDelete') || '旧格式问题无法删除，请重新生成问题');
+    MessagePlugin.warning(t('knowledgeBase.legacyQuestionCannotDelete') || 'Legacy format questions cannot be deleted. Please regenerate the question.');
     return;
   }
 
   const confirmDialog = DialogPlugin.confirm({
-    header: t('common.confirmDelete') || '确认删除',
-    body: t('knowledgeBase.confirmDeleteQuestion') || '确定要删除这个问题吗？删除后将同时移除对应的向量索引。',
-    confirmBtn: t('common.confirm') || '确认',
-    cancelBtn: t('common.cancel') || '取消',
+    header: t('common.confirmDelete') || 'Confirm Deletion',
+    body: t('knowledgeBase.confirmDeleteQuestion') || 'Are you sure you want to delete this question? The corresponding vector index will also be removed.',
+    confirmBtn: t('common.confirm') || 'Confirm',
+    cancelBtn: t('common.cancel') || 'Cancel',
     onConfirm: async () => {
       confirmDialog.hide();
       deletingQuestion.value = { chunkIndex, questionId: question.id };
       try {
         await deleteGeneratedQuestion(item.id, question.id);
-        MessagePlugin.success(t('common.deleteSuccess') || '删除成功');
+        MessagePlugin.success(t('common.deleteSuccess') || 'Deleted successfully');
         
-        // 更新本地数据
+        // Update local data
         const metadata = typeof item.metadata === 'string' ? JSON.parse(item.metadata) : item.metadata;
         if (metadata && metadata.generated_questions) {
           const idx = metadata.generated_questions.findIndex((q: GeneratedQuestion) => q.id === question.id);
@@ -352,10 +352,10 @@ const handleDeleteQuestion = async (item: any, chunkIndex: number, question: Gen
           item.metadata = typeof item.metadata === 'string' ? JSON.stringify(metadata) : metadata;
         }
         
-        // 通知父组件刷新数据
+        // Notify parent component to refresh data
         emit('questionDeleted', { chunkId: item.id, questionId: question.id });
       } catch (error: any) {
-        MessagePlugin.error(error?.message || t('common.deleteFailed') || '删除失败');
+        MessagePlugin.error(error?.message || t('common.deleteFailed') || 'Deletion failed');
       } finally {
         deletingQuestion.value = null;
       }
@@ -366,7 +366,7 @@ const handleDeleteQuestion = async (item: any, chunkIndex: number, question: Gen
   });
 };
 
-// 检查是否正在删除某个问题
+// Check if a question is being deleted
 const isDeleting = (chunkIndex: number, questionId: string) => {
   return deletingQuestion.value?.chunkIndex === chunkIndex && deletingQuestion.value?.questionId === questionId;
 };
@@ -419,7 +419,7 @@ const handleDetailsScroll = () => {
         </div>
       </template>
       
-      <!-- 文件类型专属区域 -->
+      <!-- File type specific area -->
       <div v-if="details.type === 'file'" class="doc_box">
         <a :href="url" style="display: none" ref="down" :download="details.title"></a>
         <span class="label">{{ $t('knowledgeBase.fileName') }}</span>
@@ -431,9 +431,9 @@ const handleDetailsScroll = () => {
         </div>
       </div>
       
-      <!-- URL类型专属区域 -->
+      <!-- URL type specific area -->
       <div v-else-if="details.type === 'url'" class="url_box">
-        <span class="label">{{ $t('knowledgeBase.urlSource') || '来源网址' }}</span>
+        <span class="label">{{ $t('knowledgeBase.urlSource') || 'Source URL' }}</span>
         <div class="url_link_box">
           <a :href="details.source" target="_blank" class="url_link">
             <t-icon name="link" size="14px" />
@@ -443,9 +443,9 @@ const handleDetailsScroll = () => {
         </div>
       </div>
       
-      <!-- 手动创建类型专属区域 -->
+      <!-- Manual creation type specific area -->
       <div v-else-if="details.type === 'manual'" class="manual_box">
-        <span class="label">{{ $t('knowledgeBase.documentTitle') || '文档标题' }}</span>
+        <span class="label">{{ $t('knowledgeBase.documentTitle') || 'Document Title' }}</span>
         <div class="manual_title_box">
           <span class="manual_title">{{ details.title }}</span>
         </div>
@@ -456,7 +456,7 @@ const handleDetailsScroll = () => {
           <div class="title-row">
             <span class="label">{{ getContentLabel() }}</span>
             <span v-if="viewMode === 'chunks' && details.total > 0" class="chunk-count">
-              {{ $t('knowledgeBase.chunkCount', { count: details.total }) || `共 ${details.total} 个片段` }}
+              {{ $t('knowledgeBase.chunkCount', { count: details.total }) || `Total ${details.total} chunks` }}
             </span>
           </div>
           <div class="meta-row">
@@ -471,20 +471,20 @@ const handleDetailsScroll = () => {
               class="view-mode-toggle"
             >
               {{ viewMode === 'chunks' 
-                ? (t('knowledgeBase.viewOriginal') || '查看原文件') 
-                : (t('knowledgeBase.viewChunks') || '查看分块') }}
+                ? (t('knowledgeBase.viewOriginal') || 'View Original File') 
+                : (t('knowledgeBase.viewChunks') || 'View Chunks') }}
             </t-button>
           </div>
         </div>
       </div>
       
-      <!-- 原文件视图 -->
+      <!-- Original file view -->
       <div v-if="viewMode === 'original'">
         <div v-if="isMarkdownFile(details.file_type)" class="md-content original-md" v-html="processMarkdown(originalContent || '')"></div>
         <pre v-else class="original-text">{{ originalContent }}</pre>
       </div>
 
-      <!-- 分块视图 -->
+      <!-- Chunk view -->
       <div v-else>
         <div v-if="details.md.length == 0" class="no_content">{{ $t('common.noData') }}</div>
         <div v-else class="chunk-list">
@@ -494,7 +494,7 @@ const handleDetailsScroll = () => {
             :class="getChunkClass(index)"
           >
             <div class="chunk-header">
-              <span class="chunk-index">{{ $t('knowledgeBase.segment') || '片段' }} {{ index + 1 }}</span>
+              <span class="chunk-index">{{ $t('knowledgeBase.segment') || 'Chunk' }} {{ index + 1 }}</span>
               <div class="chunk-header-right">
                 <t-tag 
                   v-if="getGeneratedQuestions(item).length > 0" 
@@ -502,18 +502,18 @@ const handleDetailsScroll = () => {
                   theme="success" 
                   variant="light"
                 >
-                  {{ $t('knowledgeBase.questions') || '问题' }} {{ getGeneratedQuestions(item).length }}
+                  {{ $t('knowledgeBase.questions') || 'Questions' }} {{ getGeneratedQuestions(item).length }}
                 </t-tag>
                 <span class="chunk-meta">{{ getChunkMeta(item) }}</span>
               </div>
             </div>
             <div class="md-content" v-html="processMarkdown(item.content)"></div>
             
-            <!-- 生成的问题展示 -->
+            <!-- Generated questions display -->
             <div v-if="getGeneratedQuestions(item).length > 0" class="questions-section">
               <div class="questions-toggle" @click="toggleQuestions(index)">
                 <t-icon :name="isExpanded(index) ? 'chevron-down' : 'chevron-right'" size="14px" />
-                <span>{{ $t('knowledgeBase.generatedQuestions') || '生成的问题' }} ({{ getGeneratedQuestions(item).length }})</span>
+                <span>{{ $t('knowledgeBase.generatedQuestions') || 'Generated Questions' }} ({{ getGeneratedQuestions(item).length }})</span>
               </div>
               <div v-show="isExpanded(index)" class="questions-list">
                 <div 
@@ -556,7 +556,7 @@ const handleDetailsScroll = () => {
   width: 654px !important;
 }
 
-// 代码块样式（带语言头与复制）
+// Code block style (with language header and copy)
 :deep(.code-block-wrapper) {
   margin: 12px 0;
   border: 1px solid #d1d5db;
@@ -645,7 +645,7 @@ const handleDetailsScroll = () => {
   margin-bottom: 8px;
 }
 
-// 文件下载区域
+// File download area
 .download_box {
   display: flex;
   align-items: center;
@@ -678,7 +678,7 @@ const handleDetailsScroll = () => {
   }
 }
 
-// URL链接区域
+// URL link area
 .url_link_box {
   border-radius: 4px;
   border: 1px solid #d0e8dc;
@@ -719,7 +719,7 @@ const handleDetailsScroll = () => {
   }
 }
 
-// 手动创建标题区域
+// Manual creation title area
 .manual_title_box {
   border-radius: 4px;
   border: 1px solid #dcdcdc;
@@ -791,7 +791,7 @@ const handleDetailsScroll = () => {
   text-align: center;
 }
 
-// Chunk列表样式
+// Chunk list style
 .chunk-list {
   display: flex;
   flex-direction: column;
@@ -845,7 +845,7 @@ const handleDetailsScroll = () => {
   }
 }
 
-// 生成的问题样式
+// Generated questions style
 .questions-section {
   margin-top: 12px;
   padding-top: 10px;
@@ -923,7 +923,7 @@ const handleDetailsScroll = () => {
   color: #1d2129;
 }
 
-// 保留旧样式作为兼容（已被chunk-item替代）
+// Keep old styles for compatibility (replaced by chunk-item)
 .content {
   word-break: break-word;
   padding: 4px;

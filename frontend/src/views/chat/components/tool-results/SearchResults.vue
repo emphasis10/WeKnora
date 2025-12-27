@@ -98,10 +98,10 @@ const hasOtherParams = computed(() => {
 
 const getRelevanceClass = (level: RelevanceLevel): string => {
   const classMap: Record<RelevanceLevel, string> = {
-    '高相关': 'high',
-    '中相关': 'medium',
-    '低相关': 'low',
-    '弱相关': 'weak',
+    '高相关': 'high', // High relevance
+    '中相关': 'medium', // Medium relevance
+    '低相关': 'low', // Low relevance
+    '弱相关': 'weak', // Weak relevance
   };
   return classMap[level] || 'weak';
 };

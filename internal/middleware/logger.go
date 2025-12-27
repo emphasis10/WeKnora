@@ -16,25 +16,25 @@ import (
 )
 
 const (
-	maxBodySize = 1024 * 10 // 最大记录10KB的body内容
+	maxBodySize = 1024 * 10 // Maximum record of 10KB body content
 )
 
-// loggerResponseBodyWriter 自定义ResponseWriter用于捕获响应内容（用于logger中间件）
+// loggerResponseBodyWriter is a custom ResponseWriter used to capture response content (for logger middleware)
 type loggerResponseBodyWriter struct {
 	gin.ResponseWriter
 	body *bytes.Buffer
 }
 
-// Write 重写Write方法，同时写入buffer和原始writer
+// Write overrides the Write method, writing to both the buffer and the original writer
 func (r loggerResponseBodyWriter) Write(b []byte) (int, error) {
 	r.body.Write(b)
 	return r.ResponseWriter.Write(b)
 }
 
-// sanitizeBody 清理敏感信息
+// sanitizeBody cleans sensitive information
 func sanitizeBody(body string) string {
 	result := body
-	// 替换常见的敏感字段（JSON格式）
+	// Replace common sensitive fields (JSON format)
 	sensitivePatterns := []struct {
 		pattern     string
 		replacement string
@@ -58,30 +58,30 @@ func sanitizeBody(body string) string {
 	return result
 }
 
-// readRequestBody 读取请求体（限制大小用于日志，但完整读取用于重置）
+// readRequestBody reads the request body (size limited for logging, but fully read for reset)
 func readRequestBody(c *gin.Context) string {
 	if c.Request.Body == nil {
 		return ""
 	}
 
-	// 检查Content-Type，只记录JSON类型
+	// Check Content-Type, only log JSON and text types
 	contentType := c.GetHeader("Content-Type")
 	if !strings.Contains(contentType, "application/json") &&
 		!strings.Contains(contentType, "application/x-www-form-urlencoded") &&
 		!strings.Contains(contentType, "text/") {
-		return "[非文本类型，已跳过]"
+		return "[Non-text type, skipped]"
 	}
 
-	// 完整读取body内容（不限制大小），因为需要完整重置给后续handler使用
+	// Reading the full body content (no size limit) as it needs to be fully reset for subsequent handlers
 	bodyBytes, err := io.ReadAll(c.Request.Body)
 	if err != nil {
-		return "[读取请求体失败]"
+		return "[Failed to read request body]"
 	}
 
-	// 重置request body，使用完整内容，确保后续handler能读取到完整数据
+	// Reset request body using full content to ensure subsequent handlers can read complete data
 	c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
-	// 用于日志的body（限制大小）
+	// Body used for logging (size limited)
 	var logBodyBytes []byte
 	if len(bodyBytes) > maxBodySize {
 		logBodyBytes = bodyBytes[:maxBodySize]
@@ -91,7 +91,7 @@ func readRequestBody(c *gin.Context) string {
 
 	bodyStr := string(logBodyBytes)
 	if len(bodyBytes) > maxBodySize {
-		bodyStr += "... [内容过长，已截断]"
+		bodyStr += "... [Content too long, truncated]"
 	}
 
 	return sanitizeBody(bodyStr)
@@ -136,13 +136,13 @@ func Logger() gin.HandlerFunc {
 		path := c.Request.URL.Path
 		raw := c.Request.URL.RawQuery
 
-		// 读取请求体（在Next之前读取，因为Next会消费body）
+		// Read request body (read before Next, as Next will consume the body)
 		var requestBody string
 		if c.Request.Method == "POST" || c.Request.Method == "PUT" || c.Request.Method == "PATCH" {
 			requestBody = readRequestBody(c)
 		}
 
-		// 创建响应体捕获器
+		// Create response body interceptor
 		responseBody := &bytes.Buffer{}
 		responseWriter := &loggerResponseBodyWriter{
 			ResponseWriter: c.Writer,
@@ -175,26 +175,26 @@ func Logger() gin.HandlerFunc {
 			path = path + "?" + raw
 		}
 
-		// 读取响应体
+		// Read response body
 		responseBodyStr := ""
 		if responseBody.Len() > 0 {
-			// 检查Content-Type，只记录JSON类型
+			// Check Content-Type, only log JSON and text types
 			contentType := c.Writer.Header().Get("Content-Type")
 			if strings.Contains(contentType, "application/json") ||
 				strings.Contains(contentType, "text/") {
 				bodyBytes := responseBody.Bytes()
 				if len(bodyBytes) > maxBodySize {
-					responseBodyStr = string(bodyBytes[:maxBodySize]) + "... [内容过长，已截断]"
+					responseBodyStr = string(bodyBytes[:maxBodySize]) + "... [Content too long, truncated]"
 				} else {
 					responseBodyStr = string(bodyBytes)
 				}
 				responseBodyStr = sanitizeBody(responseBodyStr)
 			} else {
-				responseBodyStr = "[非文本类型，已跳过]"
+				responseBodyStr = "[Non-text type, skipped]"
 			}
 		}
 
-		// 构建日志消息
+		// Build log message
 		logMsg := logger.GetLogger(c)
 		logMsg = logMsg.WithFields(map[string]interface{}{
 			"request_id":  safeRequestID,
@@ -206,12 +206,12 @@ func Logger() gin.HandlerFunc {
 			"client_ip":   secutils.SanitizeForLog(clientIP),
 		})
 
-		// 添加请求体（如果有）
+		// Add request body (if any)
 		if requestBody != "" {
 			logMsg = logMsg.WithField("request_body", secutils.SanitizeForLog(requestBody))
 		}
 
-		// 添加响应体（如果有）
+		// Add response body (if any)
 		if responseBodyStr != "" {
 			logMsg = logMsg.WithField("response_body", secutils.SanitizeForLog(responseBodyStr))
 		}

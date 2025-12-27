@@ -679,7 +679,7 @@ onBeforeUnmount(() => {
         >
           <template #empty>
             <div style="padding: 20px; text-align: center; color: #999;">
-              {{ $t('manualEditor.noDocumentKnowledgeBases') || '暂无可用的文档型知识库，请先创建一个文档型知识库' }}
+              {{ $t('manualEditor.noDocumentKnowledgeBases') || 'No document-type knowledge bases available, please create one first' }}
             </div>
           </template>
         </t-select>
@@ -1044,7 +1044,7 @@ onBeforeUnmount(() => {
 </style>
 
 <style lang="less">
-// 全局样式：确保 select 下拉列表在 dialog 之上
+// Global style: ensure select dropdown list is above the dialog
 .t-popup {
   z-index: 2600 !important;
 }

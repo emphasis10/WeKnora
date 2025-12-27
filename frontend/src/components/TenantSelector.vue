@@ -71,7 +71,7 @@
       </div>
     </Transition>
     
-    <!-- 遮罩层 -->
+    <!-- Overlay -->
     <div v-if="showDropdown" class="tenant-overlay" @click="closeDropdown"></div>
   </div>
 </template>
@@ -93,7 +93,7 @@ const selectorRef = ref<HTMLElement | null>(null)
 const tenantListRef = ref<HTMLElement | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
 
-// 分页相关
+// Pagination related
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
@@ -109,14 +109,14 @@ const currentTenantId = computed(() => {
 
 const currentTenantName = computed(() => {
   if (!currentTenantId.value) return t('tenant.unknown')
-  // 首先从当前加载的租户列表中查找
+  // First find from the currently loaded tenant list
   const tenant = tenants.value.find(t => t.id === currentTenantId.value)
   if (tenant) return tenant.name
-  // 如果是选中的租户，使用保存的租户名称
+  // If it's a selected tenant, use the saved tenant name
   if (selectedTenantId.value && authStore.selectedTenantName) {
     return authStore.selectedTenantName
   }
-  // 最后使用默认租户名称
+  // Finally use the default tenant name
   return authStore.tenant?.name || t('tenant.unknown')
 })
 
@@ -159,7 +159,7 @@ const clearSearch = () => {
 }
 
 const selectTenant = (tenantId: number) => {
-  // 找到选中的租户信息
+  // Find the selected tenant info
   const selectedTenant = tenants.value.find(t => t.id === tenantId)
   
   if (tenantId === defaultTenantId.value) {
@@ -239,7 +239,7 @@ const handleScroll = () => {
 }
 
 onMounted(() => {
-  // 预加载租户列表
+  // Preload tenant list
   loadTenants()
 })
 
@@ -514,7 +514,7 @@ onUnmounted(() => {
   padding: 8px;
 }
 
-// 下拉动画
+// Dropdown animation
 .dropdown-enter-active,
 .dropdown-leave-active {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);

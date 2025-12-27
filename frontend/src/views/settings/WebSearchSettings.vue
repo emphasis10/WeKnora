@@ -6,7 +6,7 @@
     </div>
 
     <div class="settings-group">
-      <!-- 搜索引擎提供商 -->
+      <!-- Web search engine provider -->
       <div class="setting-row">
         <div class="setting-info">
           <label>{{ t('webSearchSettings.providerLabel') }}</label>
@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <!-- API 密钥 -->
+      <!-- API Key -->
       <div v-if="selectedProvider && selectedProvider.requires_api_key" class="setting-row">
         <div class="setting-info">
           <label>{{ t('webSearchSettings.apiKeyLabel') }}</label>
@@ -56,7 +56,7 @@
         </div>
       </div>
 
-      <!-- 最大结果数 -->
+      <!-- Max Results -->
       <div class="setting-row">
         <div class="setting-info">
           <label>{{ t('webSearchSettings.maxResultsLabel') }}</label>
@@ -78,7 +78,7 @@
         </div>
       </div>
 
-      <!-- 包含日期 -->
+      <!-- Include Date -->
       <div class="setting-row">
         <div class="setting-info">
           <label>{{ t('webSearchSettings.includeDateLabel') }}</label>
@@ -92,7 +92,7 @@
         </div>
       </div>
 
-      <!-- 压缩方法 -->
+      <!-- Compression Method -->
       <div class="setting-row">
         <div class="setting-info">
           <label>{{ t('webSearchSettings.compressionLabel') }}</label>
@@ -114,7 +114,7 @@
         </div>
       </div>
 
-      <!-- 黑名单 -->
+      <!-- Blacklist -->
       <div class="setting-row vertical">
         <div class="setting-info">
           <label>{{ t('webSearchSettings.blacklistLabel') }}</label>
@@ -142,7 +142,7 @@ import { getWebSearchProviders, getTenantWebSearchConfig, updateTenantWebSearchC
 
 const { t } = useI18n()
 
-// 本地状态
+// Local state
 const loadingProviders = ref(false)
 const providers = ref<WebSearchProviderConfig[]>([])
 const localProvider = ref<string>('')
@@ -151,24 +151,24 @@ const localMaxResults = ref<number>(5)
 const localIncludeDate = ref<boolean>(true)
 const localCompressionMethod = ref<string>('none')
 const localBlacklistText = ref<string>('')
-const isInitializing = ref(true) // 标记是否正在初始化，初始化期间不触发自动保存
-const initialConfig = ref<WebSearchConfig | null>(null) // 保存初始配置，用于比较是否有变化
+const isInitializing = ref(true) // Mark if initializing, to prevent triggering auto-save during initialization
+const initialConfig = ref<WebSearchConfig | null>(null) // Save initial config to compare for changes
 
-// 计算属性：当前选中的提供商
+// Computed: currently selected provider
 const selectedProvider = computed(() => {
   return providers.value.find(p => p.id === localProvider.value)
 })
 
-// 加载提供商列表
+// Load providers list
 const loadProviders = async () => {
   if (providers.value.length > 0) {
-    return // 已加载过
+    return // Already loaded
   }
   
   loadingProviders.value = true
   try {
     const response = await getWebSearchProviders()
-    // request拦截器已经处理了响应，直接使用data字段
+    // Request interceptor has already handled the response, use the data field directly
     if (response.data && Array.isArray(response.data)) {
       providers.value = response.data
     }
@@ -181,17 +181,17 @@ const loadProviders = async () => {
   }
 }
 
-// 加载租户配置
+// Load tenant config
 const loadTenantConfig = async () => {
   try {
     const response = await getTenantWebSearchConfig()
-    // request拦截器已经处理了响应，直接使用data字段
+    // Request interceptor has already handled the response, use the data field directly
     if (response.data) {
       const config = response.data
-      // 在设置初始值时，禁用自动保存
+      // Disable auto-save when setting initial values
       isInitializing.value = true
       
-      // 保存初始配置的副本（用于后续比较）
+      // Save a copy of the initial config (for subsequent comparison)
       const blacklist = (config.blacklist || []).join('\n')
       initialConfig.value = {
         provider: config.provider || '',
@@ -204,22 +204,22 @@ const loadTenantConfig = async () => {
       
       // 设置本地状态值
       localProvider.value = config.provider || ''
-      // API key 在响应中被隐藏，如果是 "***"，说明已配置但未返回实际值
+      // API key is hidden in response; if "***", it means it is configured but actual value wasn't returned
       localAPIKey.value = config.api_key === '***' ? '***' : config.api_key || ''
       localMaxResults.value = config.max_results || 5
       localIncludeDate.value = config.include_date !== undefined ? config.include_date : true
       localCompressionMethod.value = config.compression_method || 'none'
       localBlacklistText.value = blacklist
       
-      // 等待所有响应式更新完成后再启用自动保存
+      // Enable auto-save after all reactive updates are complete
       await nextTick()
       await nextTick()
-      // 使用 setTimeout 确保所有事件都已处理完毕
+      // Use setTimeout to ensure all events have been processed
       setTimeout(() => {
         isInitializing.value = false
       }, 100)
     } else {
-      // 如果没有配置数据，保存默认配置
+      // If no config data, save default config
       initialConfig.value = {
         provider: '',
         api_key: '',
@@ -235,7 +235,7 @@ const loadTenantConfig = async () => {
     }
   } catch (error: any) {
     console.error('Failed to load tenant web search config:', error)
-    // 如果配置不存在，使用默认值（不显示错误）
+    // If config doesn't exist, use defaults (no error shown)
     initialConfig.value = {
       provider: '',
       api_key: '',
@@ -251,10 +251,10 @@ const loadTenantConfig = async () => {
   }
 }
 
-// 检查配置是否有变化
+// Check if config has changed
 const hasConfigChanged = (): boolean => {
   if (!initialConfig.value) {
-    return true // 如果没有初始配置，认为有变化
+    return true // If no initial config, assume changed
   }
   
   const blacklist = localBlacklistText.value
@@ -271,7 +271,7 @@ const hasConfigChanged = (): boolean => {
     blacklist: blacklist
   }
   
-  // 比较配置是否有变化（忽略 API key 的 '***' 占位符）
+  // Compare if config changed (ignoring API key '***' placeholder)
   const initial = initialConfig.value
   if (currentConfig.provider !== initial.provider) return true
   if (currentConfig.api_key !== initial.api_key && 
@@ -280,7 +280,7 @@ const hasConfigChanged = (): boolean => {
   if (currentConfig.include_date !== initial.include_date) return true
   if (currentConfig.compression_method !== initial.compression_method) return true
   
-  // 比较黑名单数组
+  // Compare blacklist array
   const currentBlacklist = blacklist.sort().join(',')
   const initialBlacklist = (initial.blacklist || []).sort().join(',')
   if (currentBlacklist !== initialBlacklist) return true
@@ -288,9 +288,9 @@ const hasConfigChanged = (): boolean => {
   return false
 }
 
-// 保存配置
+// Save config
 const saveConfig = async () => {
-  // 如果配置没有变化，不保存
+  // If config hasn't changed, don't save
   if (!hasConfigChanged()) {
     return
   }
@@ -312,7 +312,7 @@ const saveConfig = async () => {
     
     await updateTenantWebSearchConfig(config)
     
-    // 更新初始配置，避免重复保存
+    // Update initial config to avoid duplicate saves
     initialConfig.value = {
       provider: config.provider,
       api_key: config.api_key,
@@ -331,10 +331,10 @@ const saveConfig = async () => {
   }
 }
 
-// 防抖保存
+// Debounced save
 let saveTimer: number | null = null
 const debouncedSave = () => {
-  // 初始化期间不触发自动保存
+  // Don't trigger auto-save during initialization
   if (isInitializing.value) {
     return
   }
@@ -348,7 +348,7 @@ const debouncedSave = () => {
   }, 500)
 }
 
-// 处理变化
+// Handle changes
 const handleProviderChange = () => {
   debouncedSave()
 }
@@ -373,12 +373,12 @@ const handleBlacklistChange = () => {
   debouncedSave()
 }
 
-// 初始化
+// Initialization
 onMounted(async () => {
   isInitializing.value = true
   await loadProviders()
   await loadTenantConfig()
-  // loadTenantConfig 内部已经处理了 isInitializing，这里不需要再设置
+  // isInitializing is already handled in loadTenantConfig
 })
 </script>
 
@@ -513,7 +513,7 @@ onMounted(async () => {
   margin-top: 2px;
 }
 
-/* 修复下拉项描述与条目重叠：让选项支持多行自适应高度 */
+/* Fix overlap of dropdown items description: allow auto-adaptive height for multiline items */
 :deep(.t-select-option) {
   height: auto;
   align-items: flex-start;

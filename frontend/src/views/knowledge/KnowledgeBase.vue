@@ -61,19 +61,19 @@ let docSearchDebounce: ReturnType<typeof setTimeout> | null = null;
 const docSearchKeyword = ref('');
 const selectedFileType = ref('');
 const fileTypeOptions = computed(() => [
-  { content: t('knowledgeBase.allFileTypes') || '全部类型', value: '' },
+  { content: t('knowledgeBase.allFileTypes'), value: '' },
   { content: 'PDF', value: 'pdf' },
   { content: 'DOCX', value: 'docx' },
   { content: 'DOC', value: 'doc' },
   { content: 'TXT', value: 'txt' },
   { content: 'MD', value: 'md' },
   { content: 'URL', value: 'url' },
-  { content: t('knowledgeBase.typeManual') || '手动创建', value: 'manual' },
+  { content: t('knowledgeBase.typeManual'), value: 'manual' },
 ]);
 type TagInputInstance = ComponentPublicInstance<{ focus: () => void; select: () => void }>;
 const tagDropdownOptions = computed(() => {
   const options = [
-    { content: t('knowledgeBase.untagged') || '未分类', value: "" },
+    { content: t('knowledgeBase.untagged'), value: "" },
     ...tagList.value.map((tag: any) => ({
       content: tag.name,
       value: tag.id,
@@ -126,11 +126,11 @@ const getPageSize = () => {
   pageSize = Math.max(35, itemsInView);
 }
 getPageSize()
-// 直接调用 API 获取知识库文件列表
+// Directly call API to get knowledge base file list
 const getTagName = (tagId?: string | number) => {
-  if (!tagId && tagId !== 0) return t('knowledgeBase.untagged') || '未分类';
+  if (!tagId && tagId !== 0) return t('knowledgeBase.untagged');
   const key = String(tagId);
-  return tagMap.value[key]?.name || (t('knowledgeBase.untagged') || '未分类');
+  return tagMap.value[key]?.name || t('knowledgeBase.untagged');
 };
 
 const formatDocTime = (time?: string) => {
@@ -139,13 +139,13 @@ const formatDocTime = (time?: string) => {
   return formatted.slice(2, 16) // "YY-MM-DD HH:mm"
 }
 
-// 获取知识条目的显示类型
+// Get display type of knowledge item
 const getKnowledgeType = (item: any) => {
   if (item.type === 'url') {
-    return t('knowledgeBase.typeURL') || 'URL';
+    return t('knowledgeBase.typeURL');
   }
   if (item.type === 'manual') {
-    return t('knowledgeBase.typeManual') || '手动创建';
+    return t('knowledgeBase.typeManual');
   }
   if (item.file_type) {
     return item.file_type.toUpperCase();
@@ -376,7 +376,7 @@ const confirmDeleteTag = (tag: any) => {
 const handleKnowledgeTagChange = async (knowledgeId: string, tagValue: string) => {
   try {
     await updateKnowledgeTagBatch({ updates: { [knowledgeId]: tagValue || null } });
-    MessagePlugin.success(t('knowledgeBase.tagUpdateSuccess') || '分类已更新');
+    MessagePlugin.success(t('knowledgeBase.tagUpdateSuccess'));
     loadKnowledgeFiles(kbId.value);
     loadTags(kbId.value);
   } catch (error: any) {
@@ -424,7 +424,7 @@ const loadKnowledgeList = async () => {
   }
 };
 
-// 监听路由参数变化，重新获取知识库内容
+// Listen to route parameter changes, re-fetch knowledge base content
 watch(() => kbId.value, (newKbId, oldKbId) => {
   if (newKbId && newKbId !== oldKbId) {
     tagSearchQuery.value = '';
@@ -458,7 +458,7 @@ watch(tagSearchQuery, (newVal, oldVal) => {
   }, 300);
 });
 
-// 监听文档搜索关键词变化
+// Listen to document search keyword changes
 watch(docSearchKeyword, (newVal, oldVal) => {
   if (newVal === oldVal) return;
   if (docSearchDebounce) {
@@ -472,7 +472,7 @@ watch(docSearchKeyword, (newVal, oldVal) => {
   }, 300);
 });
 
-// 监听文件类型筛选变化
+// Listen to file type filter changes
 watch(selectedFileType, (newVal, oldVal) => {
   if (newVal === oldVal) return;
   if (kbId.value) {
@@ -481,23 +481,23 @@ watch(selectedFileType, (newVal, oldVal) => {
   }
 });
 
-// 监听文件上传事件
+// Listen to file upload events
 const handleFileUploaded = (event: CustomEvent) => {
   const uploadedKbId = event.detail.kbId;
-  console.log('接收到文件上传事件，上传的知识库ID:', uploadedKbId, '当前知识库ID:', kbId.value);
+  console.log('Received file upload event, uploaded KB ID:', uploadedKbId, 'Current KB ID:', kbId.value);
   if (uploadedKbId && uploadedKbId === kbId.value && !isFAQ.value) {
-    console.log('匹配当前知识库，开始刷新文件列表');
-    // 如果上传的文件属于当前知识库，使用 loadKnowledgeFiles 刷新文件列表
+    console.log('Matches current KB, starting file list refresh');
+    // If uploaded file belongs to current KB, refresh file list using loadKnowledgeFiles
     loadKnowledgeFiles(uploadedKbId);
     loadTags(uploadedKbId);
   }
 };
 
 
-// 监听从菜单触发的URL导入事件
+// Listen to URL import event triggered from menu
 const handleOpenURLImportDialog = (event: CustomEvent) => {
   const eventKbId = event.detail.kbId;
-  console.log('接收到URL导入对话框打开事件，知识库ID:', eventKbId, '当前知识库ID:', kbId.value);
+  console.log('Received URL import dialog open event, KB ID:', eventKbId, 'Current KB ID:', kbId.value);
   if (eventKbId && eventKbId === kbId.value && !isFAQ.value) {
     urlDialogVisible.value = true;
   }
@@ -507,9 +507,9 @@ onMounted(() => {
   loadKnowledgeBaseInfo(kbId.value);
   loadKnowledgeList();
   
-  // 监听文件上传事件
+  // Listen to file upload events
   window.addEventListener('knowledgeFileUploaded', handleFileUploaded as EventListener);
-  // 监听URL导入对话框打开事件
+  // Listen to URL import dialog open event
   window.addEventListener('openURLImportDialog', handleOpenURLImportDialog as EventListener);
 });
 
@@ -573,13 +573,13 @@ const updateStatus = (analyzeList: KnowledgeCard[]) => {
         });
       }
     }).catch((_err) => {
-      // 错误处理
+      // Error handling
     });
   }, 1500);
 };
 
 
-// 恢复文档处理状态（用于刷新后恢复）
+// Restore document processing status (for recovery after refresh)
 
 const closeDoc = () => {
   isCardDetails.value = false;
@@ -610,7 +610,7 @@ const documentTitle = computed(() => {
 
 const ensureDocumentKbReady = () => {
   if (isFAQ.value) {
-    MessagePlugin.warning('当前知识库类型不支持该操作');
+    MessagePlugin.warning(t('knowledgeBase.typeUnsupported'));
     return false;
   }
   if (!kbId.value) {
@@ -642,12 +642,12 @@ const handleDocumentUpload = async (event: Event) => {
   if (!files || files.length === 0) return;
   
   if (!kbId.value) {
-    MessagePlugin.error("缺少知识库ID");
+    MessagePlugin.error(t('knowledgeEditor.messages.missingId'));
     resetUploadInput();
     return;
   }
 
-  // 过滤有效文件
+  // Filter valid files
   const validFiles: File[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -661,7 +661,7 @@ const handleDocumentUpload = async (event: Event) => {
     return;
   }
 
-  // 批量上传
+  // Batch upload
   let successCount = 0;
   let failCount = 0;
   const totalCount = validFiles.length;
@@ -674,14 +674,14 @@ const handleDocumentUpload = async (event: Event) => {
         successCount++;
       } else {
         failCount++;
-        let errorMessage = "上传失败！";
+        let errorMessage = t('common.uploadFailed');
         if (responseData?.error?.message) {
           errorMessage = responseData.error.message;
         } else if (responseData?.message) {
           errorMessage = responseData.message;
         }
         if (responseData?.code === 'duplicate_file' || responseData?.error?.code === 'duplicate_file') {
-          errorMessage = "文件已存在";
+          errorMessage = t('knowledgeBase.duplicateFile');
         }
         if (totalCount === 1) {
           MessagePlugin.error(errorMessage);
@@ -689,9 +689,9 @@ const handleDocumentUpload = async (event: Event) => {
       }
     } catch (error: any) {
       failCount++;
-      let errorMessage = error?.error?.message || error?.message || "上传失败！";
+      let errorMessage = error?.error?.message || error?.message || t('common.uploadFailed');
       if (error?.code === 'duplicate_file') {
-        errorMessage = "文件已存在";
+        errorMessage = t('knowledgeBase.duplicateFile');
       }
       if (totalCount === 1) {
         MessagePlugin.error(errorMessage);
@@ -699,7 +699,7 @@ const handleDocumentUpload = async (event: Event) => {
     }
   }
 
-  // 显示上传结果
+  // Show upload results
   if (successCount > 0) {
     window.dispatchEvent(new CustomEvent('knowledgeFileUploaded', {
       detail: { kbId: kbId.value }
@@ -708,15 +708,15 @@ const handleDocumentUpload = async (event: Event) => {
 
   if (totalCount === 1) {
     if (successCount === 1) {
-      MessagePlugin.success("上传成功！");
+      MessagePlugin.success(t('common.uploadSuccess'));
     }
   } else {
     if (failCount === 0) {
-      MessagePlugin.success(`所有文件上传成功（${successCount}个）`);
+      MessagePlugin.success(t('knowledgeBase.allFilesUploaded', { count: successCount }));
     } else if (successCount > 0) {
-      MessagePlugin.warning(`部分文件上传成功（成功：${successCount}，失败：${failCount}）`);
+      MessagePlugin.warning(t('knowledgeBase.someFilesUploaded', { success: successCount, fail: failCount }));
     } else {
-      MessagePlugin.error(`所有文件上传失败（${failCount}个）`);
+      MessagePlugin.error(t('knowledgeBase.allFilesFailed', { count: failCount }));
     }
   }
 
@@ -734,7 +734,7 @@ const handleManualCreate = () => {
   });
 };
 
-// URL 导入相关
+// URL import related
 const urlDialogVisible = ref(false);
 const urlInputValue = ref('');
 const urlImporting = ref(false);
@@ -753,20 +753,20 @@ const handleURLImportCancel = () => {
 const handleURLImportConfirm = async () => {
   const url = urlInputValue.value.trim();
   if (!url) {
-    MessagePlugin.warning(t('knowledgeBase.urlRequired') || '请输入URL');
+    MessagePlugin.warning(t('knowledgeBase.urlRequired'));
     return;
   }
   
-  // 简单的URL格式验证
+  // Simple URL format validation
   try {
     new URL(url);
   } catch (error) {
-    MessagePlugin.warning(t('knowledgeBase.invalidURL') || '请输入有效的URL');
+    MessagePlugin.warning(t('knowledgeBase.invalidURL'));
     return;
   }
 
   if (!kbId.value) {
-    MessagePlugin.error("缺少知识库ID");
+    MessagePlugin.error(t('knowledgeEditor.messages.missingId'));
     return;
   }
 
@@ -778,25 +778,25 @@ const handleURLImportConfirm = async () => {
     }));
     const isSuccess = responseData?.success || responseData?.code === 200 || responseData?.status === 'success' || (!responseData?.error && responseData);
     if (isSuccess) {
-      MessagePlugin.success(t('knowledgeBase.urlImportSuccess') || 'URL导入成功！');
+      MessagePlugin.success(t('knowledgeBase.urlImportSuccess'));
       urlDialogVisible.value = false;
       urlInputValue.value = '';
     } else {
-      let errorMessage = t('knowledgeBase.urlImportFailed') || "URL导入失败！";
+      let errorMessage = t('knowledgeBase.urlImportFailed');
       if (responseData?.error?.message) {
         errorMessage = responseData.error.message;
       } else if (responseData?.message) {
         errorMessage = responseData.message;
       }
       if (responseData?.code === 'duplicate_url' || responseData?.error?.code === 'duplicate_url') {
-        errorMessage = t('knowledgeBase.urlExists') || "该URL已存在";
+        errorMessage = t('knowledgeBase.urlExists');
       }
       MessagePlugin.error(errorMessage);
     }
   } catch (error: any) {
-    let errorMessage = error?.error?.message || error?.message || t('knowledgeBase.urlImportFailed') || "URL导入失败！";
+    let errorMessage = error?.error?.message || error?.message || t('knowledgeBase.urlImportFailed');
     if (error?.code === 'duplicate_url') {
-      errorMessage = t('knowledgeBase.urlExists') || "该URL已存在";
+      errorMessage = t('knowledgeBase.urlExists');
     }
     MessagePlugin.error(errorMessage);
   } finally {
@@ -871,9 +871,9 @@ const delCardConfirm = () => {
   delKnowledge(knowledgeIndex.value, knowledge.value);
 };
 
-// 处理知识库编辑成功后的回调
+// Handle callback after successful knowledge base edit
 const handleKBEditorSuccess = (kbIdValue: string) => {
-  // 如果编辑的是当前知识库，刷新文件列表
+  // If editing current knowledge base, refresh file list
   if (kbIdValue === kbId.value) {
     loadKnowledgeFiles(kbIdValue);
   }
@@ -897,12 +897,12 @@ const getTitle = (session_id: string, value: string) => {
 };
 
 async function createNewSession(value: string): Promise<void> {
-  // Session 不再和知识库绑定，直接创建 Session
+  // Session is no longer bound to knowledge base, create session directly
   createSessions({}).then(res => {
     if (res.data && res.data.id) {
       getTitle(res.data.id, value);
     } else {
-      // 错误处理
+      // Error handling
       console.error(t('knowledgeBase.createSessionFailed'));
     }
   }).catch(error => {
@@ -1015,7 +1015,7 @@ async function createNewSession(value: string): Promise<void> {
               >
                 <div class="tag-list-left">
                   <t-icon name="folder" size="18px" />
-                  <span>{{ $t('knowledgeBase.untagged') || '未分类' }}</span>
+                  <span>{{ $t('knowledgeBase.untagged') }}</span>
                 </div>
                 <span class="tag-count">{{ untaggedKnowledgeCount }}</span>
               </div>
@@ -1146,7 +1146,7 @@ async function createNewSession(value: string): Promise<void> {
         </aside>
         <div class="tag-content">
           <div class="doc-card-area">
-            <!-- 搜索栏和筛选 -->
+            <!-- Search bar and filtering -->
             <div class="doc-filter-bar">
               <t-input
                 v-model.trim="docSearchKeyword"
@@ -1176,7 +1176,7 @@ async function createNewSession(value: string): Promise<void> {
             >
               <template v-if="cardList.length">
                 <div class="doc-card-list">
-                  <!-- 现有文档卡片 -->
+                  <!-- Existing document cards -->
                   <div
                     class="knowledge-card"
                     v-for="(item, index) in cardList"
@@ -1299,30 +1299,30 @@ async function createNewSession(value: string): Promise<void> {
             </div>
           </t-dialog>
           
-          <!-- URL 导入对话框 -->
+          <!-- URL Import Dialog -->
           <t-dialog
             v-model:visible="urlDialogVisible"
-            :header="$t('knowledgeBase.importURLTitle') || '导入网页'"
+            :header="$t('knowledgeBase.importURLTitle')"
             :confirm-btn="{
-              content: $t('common.confirm') || '确认',
+              content: $t('common.confirm'),
               theme: 'primary',
               loading: urlImporting,
             }"
-            :cancel-btn="{ content: $t('common.cancel') || '取消' }"
+            :cancel-btn="{ content: $t('common.cancel') }"
             @confirm="handleURLImportConfirm"
             @cancel="handleURLImportCancel"
             width="500px"
           >
             <div class="url-import-form">
-              <div class="url-input-label">{{ $t('knowledgeBase.urlLabel') || 'URL地址' }}</div>
+              <div class="url-input-label">{{ $t('knowledgeBase.urlLabel') }}</div>
               <t-input
                 v-model="urlInputValue"
-                :placeholder="$t('knowledgeBase.urlPlaceholder') || '请输入网页URL，例如：https://example.com'"
+                :placeholder="$t('knowledgeBase.urlPlaceholder')"
                 clearable
                 autofocus
                 @keydown.enter="handleURLImportConfirm"
               />
-              <div class="url-input-tip">{{ $t('knowledgeBase.urlTip') || '支持导入各类网页内容，系统会自动提取和解析网页中的文本内容' }}</div>
+              <div class="url-input-tip">{{ $t('knowledgeBase.urlTip') }}</div>
             </div>
           </t-dialog>
           
@@ -1337,7 +1337,7 @@ async function createNewSession(value: string): Promise<void> {
     </div>
   </template>
 
-  <!-- 知识库编辑器（创建/编辑统一组件） -->
+  <!-- Knowledge Base Editor (Unified component for create/edit) -->
   <KnowledgeBaseEditorModal 
     :visible="uiStore.showKBEditorModal"
     :mode="uiStore.kbEditorMode"
@@ -1372,7 +1372,7 @@ async function createNewSession(value: string): Promise<void> {
   }
 }
 
-/* 面包屑下拉菜单优化 */
+/* Breadcrumb dropdown menu optimization */
 .t-popup__content {
   .t-dropdown__menu {
     background: #ffffff;
@@ -1871,7 +1871,7 @@ async function createNewSession(value: string): Promise<void> {
   }
 }
 
-// Header 样式
+// Header styles
 .document-header {
   display: flex;
   align-items: center;
@@ -2426,28 +2426,28 @@ async function createNewSession(value: string): Promise<void> {
   vertical-align: middle;
 }
 
-/* 小屏幕平板 - 2列 */
+/* Small screen tablet - 2 columns */
 @media (min-width: 900px) {
   .doc-card-list {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* 中等屏幕 - 3列 */
+/* Medium screen - 3 columns */
 @media (min-width: 1250px) {
   .doc-card-list {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* 中等屏幕 - 3列 */
+/* Medium screen - 3 columns */
 @media (min-width: 1600px) {
   .doc-card-list {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
-/* 大屏幕 - 4列 */
+/* Large screen - 4 columns */
 @media (min-width: 2000px) {
   .doc-card-list {
     grid-template-columns: repeat(5, 1fr);

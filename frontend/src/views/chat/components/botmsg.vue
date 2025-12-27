@@ -1,7 +1,7 @@
 <template>
     <div class="bot_msg">
         <div style="display: flex;flex-direction: column; gap:8px">
-            <!-- 显示@的知识库和文件（非 Agent 模式下显示） -->
+            <!-- Display @ mentioned knowledge bases and files (visible in non-Agent mode) -->
             <div v-if="!session.isAgentMode && mentionedItems && mentionedItems.length > 0" class="mentioned_items">
                 <span 
                     v-for="item in mentionedItems" 
@@ -22,9 +22,9 @@
             <AgentStreamDisplay :session="session" :user-query="userQuery" v-if="session.isAgentMode"></AgentStreamDisplay>
             <deepThink :deepSession="session" v-if="session.showThink && !session.isAgentMode"></deepThink>
         </div>
-        <!-- 非 Agent 模式下才显示传统的 markdown 渲染 -->
+        <!-- Traditional markdown rendering only displayed in non-Agent mode -->
         <div ref="parentMd" v-if="!session.hideContent && !session.isAgentMode">
-            <!-- 消息正在总结中则渲染加载动画  -->
+            <!-- Render loading animation if message is summarizing -->
             <div v-if="session.thinking" class="thinking-loading">
                 <div class="loading-typing">
                     <span></span>
@@ -32,13 +32,13 @@
                     <span></span>
                 </div>
             </div>
-            <!-- 直接渲染完整内容，避免切分导致的问题，样式与 thinking 一致 -->
+            <!-- Render complete content directly to avoid issues caused by splitting, style consistent with thinking -->
             <div class="content-wrapper">
                 <div class="ai-markdown-template markdown-content">
                     <div v-for="(token, index) in markdownTokens" :key="index" v-html="renderToken(token)"></div>
                 </div>
             </div>
-            <!-- 复制和添加到知识库按钮 - 非 Agent 模式下显示 -->
+            <!-- Copy and Add to Knowledge Base buttons - visible in non-Agent mode -->
             <div v-if="session.is_completed && (content || session.content)" class="answer-toolbar">
                 <t-button size="small" variant="outline" shape="round" @click.stop="handleCopyAnswer" :title="$t('agent.copy')">
                     <t-icon name="copy" />
@@ -78,7 +78,7 @@ let reviewUrl = ref('')
 let reviewImg = ref(false)
 let isImgLoading = ref(false);
 const props = defineProps({
-    // 必填项
+    // Required fields
     content: {
         type: String,
         required: false
@@ -110,46 +110,46 @@ const closePreImg = () => {
     reviewUrl.value = '';
 }
 
-// 创建自定义渲染器实例
+// Create custom renderer instance
 const customRenderer = new marked.Renderer();
-// 覆盖图片渲染方法
+// Override image rendering method
 customRenderer.image = function(href, title, text) {
-    // 验证图片 URL 是否安全
+    // Validate image URL safety
     if (!isValidImageURL(href)) {
         return `<p>${t('error.invalidImageLink')}</p>`;
     }
-    // 使用安全的图片创建函数
+    // Use safe image creation function
     return createSafeImage(href, text || '', title || '');
 };
 
-// 计算属性：将 Markdown 文本转换为 tokens
+// Computed property: convert Markdown text to tokens
 const markdownTokens = computed(() => {
     const text = props.content || props.session?.content || '';
     if (!text || typeof text !== 'string') {
         return [];
     }
     
-    // 首先对 Markdown 内容进行安全处理
+    // First safely handle Markdown content
     const safeMarkdown = safeMarkdownToHTML(text);
     
-    // 使用 marked.lexer 分词
+    // Use marked.lexer for tokenization
     return marked.lexer(safeMarkdown);
 });
 
-// 渲染单个 token 为 HTML
+// Render single token to HTML
 const renderToken = (token) => {
     try {
-        // 创建临时的 marked 配置
+        // Create temporary marked configuration
         const markedOptions = {
             renderer: customRenderer,
             breaks: true
         };
         
-        // 解析单个 token
-        // marked.parser 接受 token 数组
+        // Parse single token
+        // marked.parser accepts token array
         let html = marked.parser([token], markedOptions);
         
-        // 使用 DOMPurify 进行最终的安全清理
+        // Use DOMPurify for final safety cleanup
         return sanitizeHTML(html);
     } catch (e) {
         console.error('Token rendering error:', e);
@@ -161,41 +161,41 @@ const myMarkdown = (res) => {
     return marked.parse(res, { renderer })
 }
 
-// 获取实际内容
+// Get actual content
 const getActualContent = () => {
     return (props.content || props.session?.content || '').trim();
 };
 
-// 格式化标题
+// Format title
 const formatManualTitle = (question) => {
     if (!question) {
-        return '会话摘录';
+        return 'Session Excerpt';
     }
     const condensed = question.replace(/\s+/g, ' ').trim();
     if (!condensed) {
-        return '会话摘录';
+        return 'Session Excerpt';
     }
     return condensed.length > 40 ? `${condensed.slice(0, 40)}...` : condensed;
 };
 
-// 构建手动添加的 Markdown 内容
+// Build manually added Markdown content
 const buildManualMarkdown = (question, answer) => {
-    const safeAnswer = answer?.trim() || '（无回答内容）';
+    const safeAnswer = answer?.trim() || '(No response content)';
     return `${safeAnswer}`;
 };
 
-// 复制回答内容
+// Copy response content
 const handleCopyAnswer = async () => {
     const content = getActualContent();
     if (!content) {
-        MessagePlugin.warning(t('chat.emptyContentWarning') || '当前回答为空，无法复制');
+        MessagePlugin.warning(t('chat.emptyContentWarning') || 'Current response is empty, cannot copy');
         return;
     }
 
     try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(content);
-            MessagePlugin.success(t('chat.copySuccess') || '已复制到剪贴板');
+            MessagePlugin.success(t('chat.copySuccess') || 'Copied to clipboard');
         } else {
             const textArea = document.createElement('textarea');
             textArea.value = content;
@@ -205,19 +205,19 @@ const handleCopyAnswer = async () => {
             textArea.select();
             document.execCommand('copy');
             document.body.removeChild(textArea);
-            MessagePlugin.success(t('chat.copySuccess') || '已复制到剪贴板');
+            MessagePlugin.success(t('chat.copySuccess') || 'Copied to clipboard');
         }
     } catch (err) {
-        console.error('复制失败:', err);
-        MessagePlugin.error(t('chat.copyFailed') || '复制失败，请手动复制');
+        console.error('Copy failed:', err);
+        MessagePlugin.error(t('chat.copyFailed') || 'Copy failed, please copy manually');
     }
 };
 
-// 添加到知识库
+// Add to knowledge base
 const handleAddToKnowledge = () => {
     const content = getActualContent();
     if (!content) {
-        MessagePlugin.warning(t('chat.emptyContentWarning') || '当前回答为空，无法保存到知识库');
+        MessagePlugin.warning(t('chat.emptyContentWarning') || 'Current response is empty, cannot save to knowledge base');
         return;
     }
 
@@ -232,10 +232,10 @@ const handleAddToKnowledge = () => {
         status: 'draft',
     });
 
-    MessagePlugin.info(t('chat.editorOpened') || '已打开编辑器，请选择知识库后保存');
+    MessagePlugin.info(t('chat.editorOpened') || 'Editor opened, please select a knowledge base and save');
 };
 
-// 处理 markdown-content 中图片的点击事件
+// Handle click event on image in markdown-content
 const handleMarkdownImageClick = (e) => {
     const target = e.target;
     if (target && target.tagName === 'IMG') {
@@ -249,7 +249,7 @@ const handleMarkdownImageClick = (e) => {
 };
 
 onMounted(async () => {
-    // 为 markdown-content 中的图片添加点击事件
+    // Add click event to images in markdown-content
     nextTick(() => {
         if (parentMd.value) {
             parentMd.value.addEventListener('click', handleMarkdownImageClick, true);
@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
 <style lang="less" scoped>
 @import '../../../components/css/markdown.less';
 
-// 内容包装器 - 与 Agent 模式的 answer 样式一致
+// Content wrapper - consistent with answer style in Agent mode
 .content-wrapper {
     background: #ffffff;
     border-radius: 6px;
@@ -467,7 +467,7 @@ onBeforeUnmount(() => {
     }
 }
 
-// 复制和添加到知识库按钮工具栏
+// Toolbar for copy and add to knowledge base buttons
 .answer-toolbar {
     display: flex;
     justify-content: flex-start;

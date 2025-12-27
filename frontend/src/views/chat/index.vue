@@ -102,7 +102,7 @@ watch([() => route.params], (newvalue) => {
         messagesList.splice(0);
         session_id.value = newvalue[0].chatid;
         
-        // 切换会话时，重置状态（加载历史消息不应显示loading）
+        // Reset status when switching sessions (loading historical messages should not show loading)
         loading.value = false;
         isReplying.value = false;
         currentAssistantMessageId.value = '';
@@ -198,8 +198,8 @@ const reconstructEventStreamFromSteps = (agentSteps, messageContent, isCompleted
     });
     }
     
-    // 总是添加 answer 事件如果有内容（无论是否有 agent_steps）
-    // 这样可以确保最终答案始终被渲染
+    // Always add answer event if there is content (regardless of agent_steps)
+    // This ensures the final answer is always rendered
     if (messageContent && messageContent.trim()) {
         events.push({
             type: 'answer',
@@ -207,8 +207,8 @@ const reconstructEventStreamFromSteps = (agentSteps, messageContent, isCompleted
             done: true
         });
     } else if (isCompleted) {
-        // 如果消息已完成但 content 为空（Agent 模式常见情况），添加一个空的 answer 事件标记完成
-        // 这样可以确保 isConversationDone 返回 true，不显示 loading-indicator
+        // If message is completed but content is empty (common in Agent mode), add an empty answer event to mark completion
+        // This ensures isConversationDone returns true and loading-indicator is not shown
         events.push({
             type: 'answer',
             content: '',
@@ -222,7 +222,7 @@ const handleMsgList = async (data, isScrollType = false, newScrollHeight) => {
     let chatlist = data.reverse()
     for (let i = 0, len = chatlist.length; i < len; i++) {
         let item = chatlist[i];
-        item.isAgentMode = false; // Agent 模式标记
+        item.isAgentMode = false; // Agent mode flag
         item.agentEventStream = item.agentEventStream || [];
         item._eventMap = new Map();
         item._pendingToolCalls = new Map();
@@ -233,7 +233,7 @@ const handleMsgList = async (data, isScrollType = false, newScrollHeight) => {
             console.log('[Message Load] Reconstructing agent steps for message:', item.id, 'steps:', item.agent_steps.length);
             item.isAgentMode = true;
             item.agentEventStream = reconstructEventStreamFromSteps(item.agent_steps, item.content, item.is_completed);
-            // 隐藏最终答案内容，因为它已经包含在 agentEventStream 的 answer 事件中
+            // Hide final answer content as it's already included in agentEventStream's answer event
             item.hideContent = true;
             console.log('[Message Load] Reconstructed', item.agentEventStream.length, 'events from agent steps');
         }
@@ -252,8 +252,8 @@ const handleMsgList = async (data, isScrollType = false, newScrollHeight) => {
             }
         }
         
-        // 只给非Agent模式的空内容已完成消息设置默认错误消息
-        // Agent模式的消息内容在agent_steps中，content为空是正常的
+        // Only set default error message for non-Agent mode completed messages with empty content
+        // Agent mode message content is in agent_steps, empty content is normal
         if (item.is_completed && !item.content && !item.isAgentMode) {
             item.content = t('chat.cannotAnswer');
         }
@@ -269,7 +269,7 @@ const handleMsgList = async (data, isScrollType = false, newScrollHeight) => {
     }
     if (messagesList[messagesList.length - 1] && !messagesList[messagesList.length - 1].is_completed) {
         isReplying.value = true;
-        // 保存正在 stream 的消息 ID，以便停止时使用
+        // Save the streaming message ID for stopping later
         const lastMessage = messagesList[messagesList.length - 1];
         if (lastMessage.role === 'assistant') {
             currentAssistantMessageId.value = lastMessage.id;
@@ -286,21 +286,21 @@ const checkmenuTitle = (session_id) => {
         }
     });
 }
-// 发送消息
-// 处理停止生成事件 - 立即清除 loading 状态
+// Send message
+// Handle stop generation event - immediately clear loading state
 const handleStopGeneration = () => {
     console.log('[Stop Generation] Immediately clearing loading state');
     loading.value = false;
     isReplying.value = false;
-    // 注意：不在这里清空 currentAssistantMessageId，因为需要它来调用 API
-    // API 调用成功后，后端的 stop 事件会清空它
+    // Note: currentAssistantMessageId is not cleared here as it's needed for the API call
+    // After successful API call, the backend stop event will clear it
 };
 
 const sendMsg = async (value, modelId = '', mentionedItems = []) => {
     userquery.value = value;
     isReplying.value = true;
     loading.value = true;
-    // 将@提及的知识库和文件信息存入用户消息
+    // Store mentions of knowledge bases and file information in user message
     messagesList.push({ content: value, role: 'user', mentioned_items: mentionedItems });
     scrollToBottom();
     
@@ -343,14 +343,14 @@ watch(error, (newError) => {
         MessagePlugin.error(newError);
         isReplying.value = false;
         loading.value = false;
-        // 清空当前 assistant message ID
+        // Clear current assistant message ID
         currentAssistantMessageId.value = '';
     }
 });
 
-// 处理流式数据
+// Handle streaming data
 onChunk((data) => {
-    // 日志：打印接收到的事件
+    // Log: Print received event
     console.log('[Agent Event Received]', {
         response_type: data.response_type,
         id: data.id,
@@ -362,7 +362,7 @@ onChunk((data) => {
         assistant_message_id: data.assistant_message_id
     });
     
-    // 处理 agent query 事件 - 保存 assistant message ID 并保持 loading 状态
+    // Handle agent query event - save assistant message id and keep loading state
     if (data.response_type === 'agent_query') {
         if (data.assistant_message_id) {
             currentAssistantMessageId.value = data.assistant_message_id;
@@ -378,17 +378,17 @@ onChunk((data) => {
         // 检查是否是继续流式传输（消息已存在）
         const existingMessage = messagesList.findLast((item) => item.id === data.id || item.request_id === data.id);
         if (!existingMessage) {
-            // 新消息，设置 loading 状态
+            // New message, set loading state
         loading.value = true;
             console.log('[Agent Query] New message, setting loading=true');
         } else {
-            // 继续流式传输（刷新页面场景），不设置 loading，因为消息已经在列表中
+            // Continuing stream (after page refresh), don't set loading as message is already in list
             console.log('[Agent Query] Continuing stream for existing message, keeping current loading state');
         }
         return;
     }
     
-    // 处理会话标题更新事件 - 不关闭 loading
+    // Handle session title update event - don't close loading
     if (data.response_type === 'session_title') {
         const title = data.content || data.data?.title;
         if (title && data.data?.session_id) {
@@ -400,11 +400,11 @@ onChunk((data) => {
             usemenuStore.changeIsFirstSession(false);
             isNeedTitle.value = false;
         }
-        // 不关闭 loading，等待实际内容
+        // Don't close loading, wait for actual content
         return;
     }
     
-    // 判断是否是 Agent 模式的响应
+    // Determine if it's an Agent mode response
     const isAgentResponse = data.response_type === 'thinking' || 
                            data.response_type === 'tool_call' || 
                            data.response_type === 'tool_result' ||
@@ -413,17 +413,17 @@ onChunk((data) => {
                            data.response_type === 'reflection' ||
                            data.response_type === 'stop';
     
-    // Agent 模式处理（包括 stop 事件）
+    // Agent mode handling (including stop event)
     if (isAgentResponse || messagesList[messagesList.length - 1]?.isAgentMode) {
-        // 在 handleAgentChunk 中处理 loading 状态
+        // Handle loading state in handleAgentChunk
         handleAgentChunk(data);
         
-        // 对于 stop 事件，额外处理全局状态
+        // Extra handling for global state in stop event
         if (data.response_type === 'stop') {
             console.log('[Stop Event] Generation stopped');
             loading.value = false;
             isReplying.value = false;
-            // 清空当前 assistant message ID
+            // Clear current assistant message ID
             currentAssistantMessageId.value = '';
         }
         return;
@@ -460,13 +460,13 @@ onChunk((data) => {
     }
     
     if (data.done) {
-        // 标记消息已完成
+        // Mark message as completed
         obj.is_completed = true;
-        // 标题生成已改为异步事件推送，不再需要在这里手动调用
-        // 如果标题还未生成，前端会通过 SSE 事件接收
+        // Title generation has been moved to asynchronous event push, no need manual call here
+        // If title is not yet generated, frontend will receive it via SSE event
         isReplying.value = false;
         fullContent.value = "";
-        // 清空当前 assistant message ID
+        // Clear current assistant message ID
         currentAssistantMessageId.value = '';
     }
     updateAssistantSession(obj);
@@ -476,7 +476,7 @@ const handleAgentChunk = (data) => {
     let message = messagesList.findLast((item) => item.request_id === data.id || item.id === data.id);
     
     if (!message) {
-        // 创建新的 Assistant 消息 - 此时开始显示内容，关闭 loading
+        // Create new Assistant message - start showing content, close loading
         const newMsg = {
             id: data.id,
             request_id: data.id,
@@ -490,7 +490,7 @@ const handleAgentChunk = (data) => {
             knowledge_references: []
         };
         messagesList.push(newMsg);
-        loading.value = false; // 消息已创建，关闭 loading
+        loading.value = false; // Message created, close loading
         scrollToBottom();
         // Don't return - continue to process the current event data
         message = newMsg;
@@ -498,8 +498,8 @@ const handleAgentChunk = (data) => {
     
     message.isAgentMode = true;
     
-    // 确保在继续流式传输时（刷新页面场景），一旦接收到实际内容就关闭 loading
-    // 这是一个保护措施，防止任何边缘情况导致 loading 残留
+    // Ensure that loading is closed once actual content is received during continued stream (refresh page scenario)
+    // This is a safety measure against any edge cases that might leave loading stuck
     if (loading.value && (data.response_type === 'thinking' || data.response_type === 'answer' || data.response_type === 'tool_call')) {
         console.log('[Agent Chunk] Closing loading for continued stream');
         loading.value = false;
@@ -681,17 +681,17 @@ const handleAgentChunk = (data) => {
             
 
         case 'references':
-            // 知识引用
+            // Knowledge references
             if (data.data?.references) {
                 message.knowledge_references = data.data.references;
             } else if (data.knowledge_references) {
-                // 兼容旧格式
+                // Compatible with old format
                 message.knowledge_references = data.knowledge_references;
             }
             break;
             
         case 'answer':
-            // 最终答案
+            // Final answer
             message.thinking = false;
             message.content = (message.content || '') + (data.content || '');
             fullContent.value += data.content || '';
@@ -715,20 +715,20 @@ const handleAgentChunk = (data) => {
             if (data.done) {
                 console.log('[Agent] Answer done, content length:', message.content?.length || 0);
                 
-                // 完成 - 关闭所有状态
+                // Done - close all states
                 loading.value = false;
                 isReplying.value = false;
                 fullContent.value = '';
-                // 清空当前 assistant message ID
+                // Clear current assistant message ID
                 currentAssistantMessageId.value = '';
                 
-                // 标题生成已改为异步事件推送，不再需要在这里手动调用
-                // 如果标题还未生成，前端会通过 SSE 事件接收
+                // Title generation has been moved to asynchronous event push, no need manual call here
+                // If title is not yet generated, frontend will receive it via SSE event
             }
             break;
             
         case 'stop':
-            // 停止事件 - 添加到事件流并标记对话完成
+            // Stop event - add to event stream and mark conversation as complete
             console.log('[Agent] Stop event received');
             if (!message.agentEventStream) message.agentEventStream = [];
             
@@ -761,7 +761,7 @@ const updateAssistantSession = (payload) => {
         message.thinkContent = payload.thinkContent;
         message.showThink = payload.showThink;
         message.knowledge_references = message.knowledge_references ? message.knowledge_references : payload.knowledge_references;
-        // 更新完成状态
+        // Update completion status
         if (payload.is_completed) {
             message.is_completed = true;
         }
@@ -773,7 +773,7 @@ const updateAssistantSession = (payload) => {
 onMounted(async () => {
     messagesList.splice(0);
     
-    // 初始化状态：加载历史消息时不应显示loading
+    // Initial status: loading historical messages should not show loading
     loading.value = false;
     isReplying.value = false;
     

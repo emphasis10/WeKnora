@@ -1,6 +1,6 @@
 <template>
   <div class="user-menu" ref="menuRef">
-    <!-- 用户按钮 -->
+    <!-- User button -->
     <div class="user-button" @click="toggleMenu">
       <div class="user-avatar">
         <img v-if="userAvatar" :src="userAvatar" :alt="$t('common.avatar')" />
@@ -13,7 +13,7 @@
       <t-icon :name="menuVisible ? 'chevron-up' : 'chevron-down'" class="dropdown-icon" />
     </div>
 
-    <!-- 下拉菜单 -->
+    <!-- Dropdown menu -->
     <Transition name="dropdown">
       <div v-if="menuVisible" class="user-dropdown" @click.stop>
         <div class="menu-item" @click="handleQuickNav('models')">
@@ -119,9 +119,9 @@ const authStore = useAuthStore()
 const menuRef = ref<HTMLElement>()
 const menuVisible = ref(false)
 
-// 用户信息
+// User information
 const userInfo = ref({
-  username: '用户',
+  username: 'User',
   email: 'user@example.com',
   avatar: ''
 })
@@ -130,77 +130,77 @@ const userName = computed(() => userInfo.value.username)
 const userEmail = computed(() => userInfo.value.email)
 const userAvatar = computed(() => userInfo.value.avatar)
 
-// 用户名首字母（用于无头像时显示）
+// User initial (used when no avatar)
 const userInitial = computed(() => {
   return userName.value.charAt(0).toUpperCase()
 })
 
-// 切换菜单显示
+// Toggle menu visibility
 const toggleMenu = () => {
   menuVisible.value = !menuVisible.value
 }
 
-// 快捷导航到设置的特定部分
+// Quick navigation to a specific section of settings
 const handleQuickNav = (section: string) => {
   menuVisible.value = false
   uiStore.openSettings()
   router.push('/platform/settings')
   
-  // 延迟一下，确保设置页面已经渲染
+  // Delay a bit to ensure settings page is rendered
   setTimeout(() => {
-    // 触发设置页面切换到对应section
+    // Trigger settings page to switch to corresponding section
     const event = new CustomEvent('settings-nav', { detail: { section } })
     window.dispatchEvent(event)
   }, 100)
 }
 
-// 打开设置
+// Open settings
 const handleSettings = () => {
   menuVisible.value = false
   uiStore.openSettings()
   router.push('/platform/settings')
 }
 
-// 打开 API 文档
+// Open API document
 const openApiDoc = () => {
   menuVisible.value = false
   window.open('https://github.com/Tencent/WeKnora/blob/main/docs/API.md', '_blank')
 }
 
-// 打开官网
+// Open official website
 const openWebsite = () => {
   menuVisible.value = false
   window.open('https://weknora.weixin.qq.com/', '_blank')
 }
 
-// 打开 GitHub
+// Open GitHub
 const openGithub = () => {
   menuVisible.value = false
   window.open('https://github.com/Tencent/WeKnora', '_blank')
 }
 
-// 注销
+// Logout
 const handleLogout = async () => {
   menuVisible.value = false
   
   try {
-    // 调用后端API注销
+    // Call backend API for logout
     await logoutApi()
   } catch (error) {
-    // 即使API调用失败，也继续执行本地清理
-    console.error('注销API调用失败:', error)
+    // Continue local cleanup even if API call fails
+    console.error('Logout API call failed:', error)
   }
   
-  // 清理所有状态和本地存储
+  // Cleanup all states and local storage
   authStore.logout()
   
   MessagePlugin.success(t('auth.logout'))
   
-  // 跳转到登录页
+  // Jump to login page
   router.push('/login')
 }
 
-// 加载用户信息
+// Load user info
 const loadUserInfo = async () => {
   try {
     const response = await getCurrentUser()
@@ -211,7 +211,7 @@ const loadUserInfo = async () => {
         email: user.email || 'user@example.com',
         avatar: user.avatar || ''
       }
-      // 同时更新 authStore 中的用户信息，确保包含 can_access_all_tenants 字段
+      // Update user info in authStore at the same time to ensure can_access_all_tenants field is included
       authStore.setUser({
         id: user.id,
         username: user.username,
@@ -222,7 +222,7 @@ const loadUserInfo = async () => {
         created_at: user.created_at,
         updated_at: user.updated_at
       })
-      // 如果返回了租户信息，也更新租户信息
+      // If tenant info is returned, update tenant info as well
       if (response.data.tenant) {
         authStore.setTenant({
           id: String(response.data.tenant.id),
@@ -239,7 +239,7 @@ const loadUserInfo = async () => {
   }
 }
 
-// 点击外部关闭菜单
+// Click outside to close menu
 const handleClickOutside = (e: MouseEvent) => {
   if (menuRef.value && !menuRef.value.contains(e.target as Node)) {
     menuVisible.value = false
@@ -421,7 +421,7 @@ onUnmounted(() => {
   margin: 4px 0;
 }
 
-// 下拉动画
+// Dropdown animation
 .dropdown-enter-active,
 .dropdown-leave-active {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);

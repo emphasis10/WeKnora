@@ -492,7 +492,7 @@ const showLanguageMenu = ref(false)
 
 // Language options
 const languageOptions = [
-  { value: 'zh-CN', label: '简体中文', shortLabel: '中文', flag: '🇨🇳' },
+  { value: 'zh-CN', label: 'Simplified Chinese', shortLabel: 'CN', flag: '🇨🇳' },
   { value: 'en-US', label: 'English', shortLabel: 'EN', flag: '🇺🇸' },
   { value: 'ru-RU', label: 'Русский', shortLabel: 'RU', flag: '🇷🇺' }
 ]
@@ -652,7 +652,7 @@ const handleLogin = async () => {
       MessagePlugin.error(response.message || t('auth.loginError'))
     }
   } catch (error: any) {
-    console.error('登录错误:', error)
+    console.error('Login error:', error)
     MessagePlugin.error(error.message || t('auth.loginErrorRetry'))
   } finally {
     loading.value = false
@@ -688,7 +688,7 @@ const handleRegister = async () => {
       MessagePlugin.error(response.message || t('auth.registerFailed'))
     }
   } catch (error: any) {
-    console.error('注册错误:', error)
+    console.error('Registration error:', error)
     MessagePlugin.error(error.message || t('auth.registerError'))
   } finally {
     loading.value = false

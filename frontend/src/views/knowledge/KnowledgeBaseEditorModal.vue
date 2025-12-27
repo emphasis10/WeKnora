@@ -3,7 +3,7 @@
     <Transition name="modal">
       <div v-if="visible" class="settings-overlay" @click.self="handleClose">
         <div class="settings-modal">
-          <!-- 关闭按钮 -->
+          <!-- Close Button -->
           <button class="close-btn" @click="handleClose" :aria-label="$t('general.close')">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
               <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -11,7 +11,7 @@
           </button>
 
           <div class="settings-container">
-            <!-- 左侧导航 -->
+            <!-- Left Navigation -->
             <div class="settings-sidebar">
               <div class="sidebar-header">
                 <h2 class="sidebar-title">{{ mode === 'create' ? $t('knowledgeEditor.titleCreate') : $t('knowledgeEditor.titleEdit') }}</h2>
@@ -29,10 +29,10 @@
               </div>
             </div>
 
-            <!-- 右侧内容区域 -->
+            <!-- Right Content Area -->
             <div class="settings-content">
               <div class="content-wrapper">
-                <!-- 基本信息 -->
+                <!-- Basic Information -->
                 <div v-show="currentSection === 'basic'" class="section">
                   <div v-if="formData" class="section-content">
                     <div class="section-header">
@@ -72,7 +72,7 @@
                   </div>
                 </div>
 
-                <!-- 模型配置 -->
+                <!-- Model Configuration -->
                 <div v-show="currentSection === 'models'" class="section">
                   <KBModelConfig
                     ref="modelConfigRef"
@@ -84,7 +84,7 @@
                   />
                 </div>
 
-                <!-- FAQ 配置 -->
+                <!-- FAQ Configuration -->
                 <div v-if="isFAQ && formData" v-show="currentSection === 'faq'" class="section">
                   <div class="section-content">
                     <div class="section-header">
@@ -119,7 +119,7 @@
                   </div>
                 </div>
 
-                <!-- 分块设置 -->
+                <!-- Chunking Settings -->
                 <div v-if="!isFAQ" v-show="currentSection === 'chunking'" class="section">
                   <KBChunkingSettings
                     v-if="formData"
@@ -128,7 +128,7 @@
                   />
                 </div>
 
-                <!-- 图谱设置 -->
+                <!-- Graph Settings -->
                 <div v-if="!isFAQ" v-show="currentSection === 'graph'" class="section">
                   <GraphSettings
                     v-if="formData"
@@ -138,7 +138,7 @@
                   />
                 </div>
 
-                <!-- 高级设置 -->
+                <!-- Advanced Settings -->
                 <div v-if="!isFAQ" v-show="currentSection === 'advanced'" class="section">
                   <KBAdvancedSettings
                     ref="advancedSettingsRef"
@@ -152,7 +152,7 @@
                 </div>
               </div>
 
-              <!-- 保存按钮 -->
+              <!-- Save Button -->
               <div class="settings-footer">
                 <t-button theme="default" variant="outline" @click="handleClose">
                   {{ $t('common.cancel') }}
@@ -222,11 +222,11 @@ const navItems = computed(() => {
   return items
 })
 
-// 模型配置引用
+// Model configuration reference
 const modelConfigRef = ref<InstanceType<typeof KBModelConfig>>()
 const advancedSettingsRef = ref<InstanceType<typeof KBAdvancedSettings>>()
 
-// 表单数据
+// Form data
 const formData = ref<any>(null)
 const isFAQ = computed(() => formData.value?.type === 'faq')
 
@@ -247,7 +247,7 @@ watch(
   }
 )
 
-// 初始化表单数据
+// Initialize form data
 const initFormData = (type: 'document' | 'faq' = 'document') => {
   return {
     type,
@@ -305,7 +305,7 @@ const initFormData = (type: 'document' | 'faq' = 'document') => {
   }
 }
 
-// 加载所有模型
+// Load all models
 const loadAllModels = async () => {
   try {
     const models = await listModels()
@@ -317,7 +317,7 @@ const loadAllModels = async () => {
   }
 }
 
-// 加载知识库数据（编辑模式）
+// Load knowledge base data (Edit mode)
 const loadKBData = async () => {
   if (props.mode !== 'edit' || !props.kbId) return
   
@@ -336,7 +336,7 @@ const loadKBData = async () => {
     const kb = kbInfo.data
     hasFiles.value = (filesResult as any)?.total > 0
     
-    // 设置表单数据
+    // Set form data
     const kbType = (kb.type as 'document' | 'faq') || 'document'
     formData.value = {
       type: kbType,
@@ -397,7 +397,7 @@ const loadKBData = async () => {
   }
 }
 
-// 处理配置更新
+// Handle configuration updates
 const handleModelConfigUpdate = (config: any) => {
   if (formData.value) {
     formData.value.modelConfig = { ...config }
@@ -428,18 +428,18 @@ const handleNodeExtractUpdate = (config: any) => {
   }
 }
 
-// 验证表单
+// Validate form
 const validateForm = (): boolean => {
   if (!formData.value) return false
 
-  // 验证基本信息
+  // Validate basic information
   if (!formData.value.name || !formData.value.name.trim()) {
     MessagePlugin.warning(t('knowledgeEditor.messages.nameRequired'))
     currentSection.value = 'basic'
     return false
   }
 
-  // 验证模型配置 - 必须配置 embedding 和 summary 模型
+  // Validate model configuration - embedding and summary models must be configured
   if (!formData.value.modelConfig.embeddingModelId) {
     MessagePlugin.warning(t('knowledgeEditor.messages.embeddingRequired'))
     currentSection.value = 'models'
@@ -452,7 +452,7 @@ const validateForm = (): boolean => {
     return false
   }
 
-  // 验证多模态配置（如果启用）
+  // Validate multimodal configuration (if enabled)
   if (formData.value.multimodalConfig.enabled) {
     const validation = (advancedSettingsRef.value as any)?.validateMultimodal?.()
     if (validation && !validation.valid) {
@@ -471,7 +471,7 @@ const validateForm = (): boolean => {
   return true
 }
 
-// 构建提交数据
+// Build submit data
 const buildSubmitData = () => {
   if (!formData.value) return null
 
@@ -489,7 +489,7 @@ const buildSubmitData = () => {
     summary_model_id: formData.value.modelConfig.llmModelId
   }
 
-  // 添加多模态配置
+  // Add multimodal configuration
   data.vlm_config = {
     enabled: formData.value.multimodalConfig.enabled,
     model_id: formData.value.multimodalConfig.enabled
@@ -519,7 +519,7 @@ const buildSubmitData = () => {
     }
   }
 
-  // 添加知识图谱配置
+  // Add knowledge graph configuration
   if (formData.value.nodeExtractConfig.enabled) {
     data.extract_config = {
       enabled: true,
@@ -530,7 +530,7 @@ const buildSubmitData = () => {
     }
   }
 
-  // 添加问题生成配置
+  // Add question generation configuration
   if (formData.value.questionGenerationConfig?.enabled) {
     data.question_generation_config = {
       enabled: true,
@@ -548,7 +548,7 @@ const buildSubmitData = () => {
   return data
 }
 
-// 提交表单
+// Submit form
 const handleSubmit = async () => {
   if (!validateForm()) {
     return
@@ -562,7 +562,7 @@ const handleSubmit = async () => {
     }
 
     if (props.mode === 'create') {
-      // 创建模式：一次性创建知识库及所有配置
+      // Create mode: create knowledge base and all configurations at once
       const result: any = await createKnowledgeBase(data)
       if (!result.success || !result.data?.id) {
         throw new Error(result.message || t('knowledgeEditor.messages.createFailed'))
@@ -570,12 +570,12 @@ const handleSubmit = async () => {
       MessagePlugin.success(t('knowledgeEditor.messages.createSuccess'))
       emit('success', result.data.id)
     } else {
-      // 编辑模式：分别更新基本信息和配置
+      // Edit mode: update basic information and configuration separately
       if (!props.kbId) {
         throw new Error(t('knowledgeEditor.messages.missingId'))
       }
 
-      // 1. 更新基本信息（名称、描述）和 FAQ 配置
+      // 1. Update basic information (name, description) and FAQ configuration
       const updateConfig: any = {}
       if (formData.value.type === 'faq' && formData.value.faqConfig) {
         updateConfig.faq_config = {
@@ -589,7 +589,7 @@ const handleSubmit = async () => {
         config: updateConfig
       })
 
-      // 2. 更新完整配置（模型、分块、多模态、知识图谱等）
+      // 2. Update full configuration (models, chunking, multimodal, knowledge graph, etc.)
       const config: KBModelConfigRequest = {
         llmModelId: data.summary_model_id,
         embeddingModelId: data.embedding_model_id,
@@ -643,7 +643,7 @@ const handleSubmit = async () => {
   }
 }
 
-// 重置所有状态
+// Reset all states
 const resetState = () => {
   currentSection.value = 'basic'
   formData.value = null
@@ -652,7 +652,7 @@ const resetState = () => {
   loading.value = false
 }
 
-// 关闭弹窗
+// Close modal
 const handleClose = () => {
   emit('update:visible', false)
   setTimeout(() => {
@@ -660,38 +660,38 @@ const handleClose = () => {
   }, 300)
 }
 
-// 监听弹窗打开/关闭
+// Listen to modal open/close
 watch(() => props.visible, async (newVal) => {
   if (newVal) {
-    // 打开弹窗时，先重置状态
+    // Reset state before opening modal
     resetState()
     
-    // 检查是否有初始 section，如果有则跳转
+    // Check if there is an initial section, and navigate if so
     if (uiStore.kbEditorInitialSection) {
       currentSection.value = uiStore.kbEditorInitialSection
     }
     
-    // 加载模型列表
+    // Load model list
     await loadAllModels()
     
-    // 根据模式加载数据
+    // Load data based on mode
     if (props.mode === 'edit' && props.kbId) {
       await loadKBData()
     } else {
-      // 创建模式：初始化空表单
+      // Create mode: initialize empty form
       formData.value = initFormData(props.initialType || 'document')
       hasFiles.value = false
     }
   } else {
-    // 关闭弹窗时，延迟重置状态（等待动画结束）
+    // When closing modal, delay state reset (wait for animation to end)
     setTimeout(() => {
       resetState()
-      currentSection.value = 'basic' // 重置为默认 section
+      currentSection.value = 'basic' // Reset to default section
     }, 300)
   }
 })
 
-// 监听全局设置弹窗关闭后刷新模型列表
+// Refresh model list after global settings modal closes
 watch(
   () => uiStore.showSettingsModal,
   async (visible, previous) => {
@@ -703,7 +703,7 @@ watch(
 </script>
 
 <style scoped lang="less">
-// 复用创建知识库的样式
+// Reuse knowledge base creation styles
 .settings-overlay {
   position: fixed;
   top: 0;
@@ -920,7 +920,7 @@ watch(
   flex-shrink: 0;
 }
 
-// 过渡动画
+// Transition animation
 .modal-enter-active,
 .modal-leave-active {
   transition: all 0.3s ease;
@@ -935,7 +935,7 @@ watch(
   }
 }
 
-// Radio-group 样式优化，符合项目主题风格
+// Radio-group style optimization to match project theme
 :deep(.t-radio-group) {
   .t-radio-group--filled {
     background: #f5f5f5;
@@ -961,7 +961,7 @@ watch(
       }
     }
 
-    // 禁用状态样式
+    // Disabled state style
     &.t-is-disabled {
       background: #f5f5f5;
       border-color: #d9d9d9;
