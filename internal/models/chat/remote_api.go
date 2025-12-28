@@ -68,14 +68,30 @@ func (c *RemoteAPIChat) convertMessages(messages []Message) []openai.ChatComplet
 			openaiMessages = append(openaiMessages, openai.UserMessage(msg.Content))
 		case "assistant":
 			if len(msg.ToolCalls) > 0 {
-				// For assistant messages with tool calls, we need to use raw HTTP
-				// as the SDK doesn't provide a simple way to construct these
-				openaiMessages = append(openaiMessages, openai.AssistantMessage(msg.Content))
+				toolCalls := make([]openai.ChatCompletionMessageToolCallUnionParam, 0, len(msg.ToolCalls))
+				for _, tc := range msg.ToolCalls {
+					toolCalls = append(toolCalls, openai.ChatCompletionMessageToolCallUnionParam{
+						OfFunction: &openai.ChatCompletionMessageFunctionToolCallParam{
+							ID: tc.ID,
+							Function: openai.ChatCompletionMessageFunctionToolCallFunctionParam{
+								Name:      tc.Function.Name,
+								Arguments: tc.Function.Arguments,
+							},
+						},
+					})
+				}
+				assistantMsg := openai.ChatCompletionAssistantMessageParam{
+					Content: openai.ChatCompletionAssistantMessageParamContentUnion{
+						OfString: openai.String(msg.Content),
+					},
+					ToolCalls: toolCalls,
+				}
+				openaiMessages = append(openaiMessages, openai.ChatCompletionMessageParamUnion{OfAssistant: &assistantMsg})
 			} else {
 				openaiMessages = append(openaiMessages, openai.AssistantMessage(msg.Content))
 			}
 		case "tool":
-			openaiMessages = append(openaiMessages, openai.ToolMessage(msg.ToolCallID, msg.Content))
+			openaiMessages = append(openaiMessages, openai.ToolMessage(msg.Content, msg.ToolCallID))
 		default:
 			openaiMessages = append(openaiMessages, openai.UserMessage(msg.Content))
 		}
